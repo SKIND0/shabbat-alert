@@ -32,6 +32,39 @@ function SignupForm() {
         );
     };
 
+    const geocodeLocation = async (label) => {
+        if (!label) return;
+        try {
+            const res = await fetch(
+                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(label)}&format=json&limit=1`
+            );
+            const data = await res.json();
+            if (data.length > 0) {
+                setFormData(prev => ({
+                    ...prev,
+                    location_lat: parseFloat(data[0].lat),
+                    location_lng: parseFloat(data[0].lon),
+                    location_label: label
+                }));
+            } else {
+                alert('Location not found. Try a different city name.');
+            }
+        } catch {
+            alert('Could not look up location.');
+        }
+    };
+
+    const handleSubmit = async () => {
+        const res = await fetch('http://localhost:3001/api/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        const data = await res.json();
+        if (data.success) alert('You\'re signed up!');
+        else alert('Error: ' + data.error);
+    };
+
     return (
         <div className="signup-card">
             <h2>Create your alert</h2>
@@ -102,25 +135,23 @@ function SignupForm() {
                     )}
                 </div>
             </div>
-
             <div className="form-group">
                 <label>Location</label>
                 <div className="location-row">
                     <input
                         name="location_label"
-                        placeholder="City, State"
+                        placeholder="Brooklyn, NY"
                         value={formData.location_label}
                         onChange={handleChange}
+                        onBlur={(e) => geocodeLocation(e.target.value)}
                     />
                     <button className="btn-gps" onClick={handleGPS}>
                         Detect
                     </button>
                 </div>
             </div>
-
             <div className="divider" />
-
-            <button className="btn-submit">
+            <button className="btn-submit" onClick={handleSubmit}>
                 Send me Shabbat alerts
             </button>
         </div>
