@@ -11,7 +11,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- ------------------------------------------------------------
 CREATE TABLE users (
   id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  name            Vgit ARCHAR(100) NOT NULL,
+  name            VARCHAR(100) NOT NULL,
   phone           VARCHAR(20)  NOT NULL UNIQUE,   -- E.164 format, e.g. +12125550100
   email           VARCHAR(255),                   -- optional, reserved for AWS SES later
   created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
