@@ -42,6 +42,36 @@ app.post('/api/signup', async (req, res) => {
     }
 });
 
+const { fetchAndCacheShabbatTimes } = require('./hebcal');
+
+app.get('/shabbat-times/:userId', async (req, res) => {
+    try {
+        // Get user's primary location
+        const location = await pool.query(
+            `SELECT * FROM user_locations 
+       WHERE user_id = $1 AND is_primary = true`,
+            [req.params.userId]
+        );
+
+        if (location.rows.length === 0) {
+            return res.status(404).json({ error: 'No location found for this user' });
+        }
+
+        const loc = location.rows[0];
+        const times = await fetchAndCacheShabbatTimes(
+            loc.id,
+            loc.latitude,
+            loc.longitude,
+            loc.timezone
+        );
+
+        res.json(times);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
 app.listen(3001, () => {
     console.log('Server running on port 3001');
 });
