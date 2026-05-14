@@ -53,8 +53,16 @@ function SignupForm() {
             alert('Could not look up location.');
         }
     };
-
     const handleSubmit = async () => {
+        if (!formData.first_name || !formData.phone_number) {
+            alert('Please enter your name and phone number.');
+            return;
+        }
+        if (!formData.location_lat || !formData.location_lng) {
+            alert('Please enter a location or use Detect.');
+            return;
+        }
+
         const res = await fetch('http://localhost:3001/api/signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

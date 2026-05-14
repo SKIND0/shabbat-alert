@@ -4,6 +4,22 @@ const pool = require('./db');
 const { find } = require('geo-tz');
 
 const app = express();
+
+// { sendSMS } = require('./twilio');
+
+//app.get('/test-sms', async (req, res) => {
+//    const result = await sendSMS('+1YOURNUMBER', 'Shabbat Alert test message 🕯️');
+//    res.json(result);
+//});
+
+const { sendSMS } = require('./twilio');
+
+app.get('/test-sms', async (req, res) => {
+    const result = await sendSMS('+19293052813', 'Shabbat Alert test message 🕯️');
+    res.json(result);
+});
+
+
 app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(express.json());
 

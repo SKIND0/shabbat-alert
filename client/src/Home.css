@@ -1,0 +1,137 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500&display=swap');
+
+.home-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    background:
+            radial-gradient(ellipse at 20% 50%, rgba(201, 168, 76, 0.06) 0%, transparent 60%),
+            radial-gradient(ellipse at 80% 20%, rgba(201, 168, 76, 0.04) 0%, transparent 50%),
+            #0d1b2a;
+    color: #f5f0e8;
+    font-family: 'Jost', sans-serif;
+}
+
+.home-hero {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.candle-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.home-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3.8rem;
+    font-weight: 600;
+    color: #e8cc85;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+}
+
+.home-tagline {
+    font-size: 0.85rem;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #c8bfa8;
+    margin-top: 0.5rem;
+}
+
+.candle-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: center;
+    margin: 0.75rem 0 0;
+}
+
+.candle-divider .line {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, #7a6230);
+}
+
+.candle-divider .line.right {
+    background: linear-gradient(to left, transparent, #7a6230);
+}
+
+.candle-divider .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #c9a84c;
+}
+
+.home-explanation {
+    max-width: 420px;
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.home-explanation p {
+    font-size: 1rem;
+    font-weight: 300;
+    line-height: 1.7;
+    color: #c8bfa8;
+    margin-bottom: 1.5rem;
+}
+
+.home-features {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+    display: inline-block;
+}
+
+.home-features li {
+    font-size: 0.88rem;
+    font-weight: 300;
+    color: #f5f0e8;
+    margin-bottom: 0.6rem;
+    letter-spacing: 0.03em;
+}
+
+.feature-dot {
+    color: #c9a84c;
+    margin-right: 0.5rem;
+    font-size: 0.7rem;
+}
+
+.home-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: 320px;
+}
+
+.home-btn {
+    width: 100%;
+}
+
+.btn-manage {
+    background: transparent;
+    border: 1px solid rgba(201, 168, 76, 0.3);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: #c8bfa8;
+    cursor: pointer;
+    width: 100%;
+    transition: border-color 0.2s, color 0.2s;
+}
+
+.btn-manage:hover {
+    border-color: rgba(201, 168, 76, 0.6);
+    color: #e8cc85;
+}
