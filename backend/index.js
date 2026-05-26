@@ -4,6 +4,10 @@ const pool = require('./db');
 const { find } = require('geo-tz');
 
 const app = express();
+app.use(cors({ origin: 'http://localhost:3000' }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
 
 // { sendSMS } = require('./twilio');
 
@@ -15,13 +19,10 @@ const app = express();
 const { sendSMS } = require('./twilio');
 
 app.get('/test-sms', async (req, res) => {
-    const result = await sendSMS('+19293052813', 'Shabbat Alert test message 🕯️');
+    const result = await sendSMS(req.query.to, 'test');
     res.json(result);
 });
 
-
-app.use(cors({ origin: 'http://localhost:3000' }));
-app.use(express.json());
 
 app.get('/test-db', async (req, res) => {
     try {
@@ -47,14 +48,45 @@ app.post('/api/signup', async (req, res) => {
             [userId, location_label, location_lat, location_lng, timezone]
         );
 
-        await pool.query(
-            `INSERT INTO user_preferences (user_id, alert_minutes_before, zmanim_opinion) VALUES ($1, $2, $3)`,
-            [userId, alert_preferences[0], zmanim_opinion]
-        );
+        const minutesList = (Array.isArray(alert_preferences) ? alert_preferences : [18])
+            .slice(0, 3)
+            .map((m) => parseInt(m, 10))
+            .filter((m) => !Number.isNaN(m) && m > 0);
+
+        if (minutesList.length === 0) {
+            return res.status(400).json({ error: 'At least one valid alert preference is required' });
+        }
+
+        for (const minutes of minutesList) {
+            await pool.query(
+                `INSERT INTO user_preferences (user_id, alert_minutes_before, zmanim_opinion) VALUES ($1, $2, $3)`,
+                [userId, minutes, zmanim_opinion]
+            );
+        }
 
         res.json({ success: true, userId });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/webhook/stop', async (req, res) => {
+    const from = req.body.From;
+    if (!from) {
+        return res.status(400).send('Missing From');
+    }
+
+    try {
+        await pool.query(
+            `UPDATE users SET is_active = false WHERE phone = $1`,
+            [from]
+        );
+        res.type('text/xml').status(200).send(
+            '<?xml version="1.0" encoding="UTF-8"?><Response></Response>'
+        );
+    } catch (err) {
+        console.error('STOP webhook error:', err.message);
+        res.status(500).send('Error');
     }
 });
 
@@ -87,6 +119,9 @@ app.get('/shabbat-times/:userId', async (req, res) => {
     }
 });
 
+
+const { initScheduler } = require('./scheduler');
+initScheduler();
 
 app.listen(3001, () => {
     console.log('Server running on port 3001');
