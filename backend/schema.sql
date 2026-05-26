@@ -48,7 +48,7 @@ CREATE UNIQUE INDEX uq_user_primary_location
 -- ------------------------------------------------------------
 CREATE TABLE user_preferences (
   id                  UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id             UUID        NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  user_id             UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 
   -- How many minutes before candle-lighting to send the first alert
   alert_minutes_before INTEGER   NOT NULL DEFAULT 18,
@@ -70,6 +70,8 @@ CREATE TABLE user_preferences (
   created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX idx_user_preferences_user_id ON user_preferences(user_id);
 
 -- ------------------------------------------------------------
 -- SHABBOS TIMES CACHE
@@ -146,5 +148,11 @@ INSERT INTO user_locations (user_id, label, latitude, longitude, timezone)
   SELECT id, 'Brooklyn', 40.6782, -73.9442, 'America/New_York'
   FROM users WHERE phone = '+10000000000';
 
-INSERT INTO user_preferences (user_id)
-  SELECT id FROM users WHERE phone = '+10000000000';
+INSERT INTO user_preferences (user_id, alert_minutes_before)
+  SELECT id, 18 FROM users WHERE phone = '+10000000000';
+
+-- ------------------------------------------------------------
+-- MIGRATION (existing databases only)
+-- Run once if user_preferences.user_id was created with UNIQUE:
+--   ALTER TABLE user_preferences DROP CONSTRAINT IF EXISTS user_preferences_user_id_key;
+--   CREATE INDEX IF NOT EXISTS idx_user_preferences_user_id ON user_preferences(user_id);

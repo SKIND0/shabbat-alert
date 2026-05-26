@@ -11,6 +11,7 @@ function SignupForm() {
         zmanim_opinion: 'gra',
         alert_preferences: [18]
     });
+    const [consented, setConsented] = useState(false);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -54,6 +55,10 @@ function SignupForm() {
         }
     };
     const handleSubmit = async () => {
+        if (!consented) {
+            alert('Please agree to receive SMS alerts.');
+            return;
+        }
         if (!formData.first_name || !formData.phone_number) {
             alert('Please enter your name and phone number.');
             return;
@@ -106,9 +111,9 @@ function SignupForm() {
                         value={formData.zmanim_opinion}
                         onChange={handleChange}
                     >
-                        <option value="gra">Gra</option>
-                        <option value="baalhatanya">Baal HaTanya</option>
-                        <option value="MGA">Magen Avraham</option>
+                        <option value="gra">Gra (Vilna Gaon)</option>
+                        <option value="ma">Magen Avraham</option>
+                        <option value="rt">Rabbeinu Tam</option>
                     </select>
                 </div>
             </div>
@@ -159,6 +164,12 @@ function SignupForm() {
                 </div>
             </div>
             <div className="divider" />
+            <div className="form-group">
+                <label className="checkbox-label">
+                    <input type="checkbox" checked={consented} onChange={e => setConsented(e.target.checked)} />
+                    I agree to receive SMS alerts. Message and data rates may apply. Reply STOP to unsubscribe.
+                </label>
+            </div>
             <button className="btn-submit" onClick={handleSubmit}>
                 Send me Shabbat alerts
             </button>
