@@ -1,5 +1,4 @@
 let apiUrl = (process.env.REACT_APP_API_URL || 'http://localhost:3001').replace(/\/$/, '');
-let configLoaded = false;
 let configPromise = null;
 
 export function loadApiConfig() {
@@ -11,13 +10,9 @@ export function loadApiConfig() {
             if (cfg?.apiUrl) {
                 apiUrl = String(cfg.apiUrl).replace(/\/$/, '');
             }
-            configLoaded = true;
             return apiUrl;
         })
-        .catch(() => {
-            configLoaded = true;
-            return apiUrl;
-        });
+        .catch(() => apiUrl);
 
     return configPromise;
 }
