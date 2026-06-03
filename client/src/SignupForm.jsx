@@ -63,7 +63,11 @@ function SignupForm() {
             try {
                 data = JSON.parse(text);
             } catch {
-                alert(`Server error (${res.status}). Check backend deploy logs.`);
+                alert(`Server error (${res.status}). ${text.slice(0, 120)}`);
+                return;
+            }
+            if (!res.ok) {
+                alert(data.error || `Error (${res.status})`);
                 return;
             }
             if (data.success) {
