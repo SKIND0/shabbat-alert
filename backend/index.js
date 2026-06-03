@@ -69,8 +69,16 @@ function normalizePhone(phone) {
 }
 
 function resolveTimezone(lat, lng) {
-    const zones = find(Number(lat), Number(lng));
-    return zones[0] || 'UTC';
+    const latN = Number(lat);
+    const lngN = Number(lng);
+    if (Number.isNaN(latN) || Number.isNaN(lngN)) return 'UTC';
+    try {
+        const zones = find(latN, lngN);
+        if (zones?.length) return zones[0];
+    } catch (err) {
+        console.error('geo-tz failed:', err.message);
+    }
+    return 'UTC';
 }
 
 app.post('/api/signup', async (req, res) => {
@@ -281,6 +289,13 @@ app.get('/shabbat-times/:userId', async (req, res) => {
     }
 });
 
+
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err);
+    if (!res.headersSent) {
+        res.status(500).json({ error: err.message || 'Server error' });
+    }
+});
 
 const { initScheduler } = require('./scheduler');
 initScheduler();
