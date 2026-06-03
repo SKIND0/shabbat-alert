@@ -46,12 +46,39 @@ app.get('/test-db', async (req, res) => {
     }
 });
 
+function normalizePhone(phone) {
+    if (!phone) return '';
+    const trimmed = String(phone).trim();
+    const digits = trimmed.replace(/\D/g, '');
+    if (digits.length === 10) return `+1${digits}`;
+    if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+    if (trimmed.startsWith('+')) return `+${digits}`;
+    return trimmed;
+}
+
 app.post('/api/signup', async (req, res) => {
     const { first_name, phone_number, location_lat, location_lng, location_label, zmanim_opinion, alert_preferences } = req.body;
+    const phone = normalizePhone(phone_number);
+
     try {
+        const existing = await pool.query(
+            `SELECT id FROM users
+             WHERE phone = $1
+                OR regexp_replace(phone, '\\D', '', 'g') = regexp_replace($1, '\\D', '', 'g')`,
+            [phone]
+        );
+
+        if (existing.rows.length > 0) {
+            return res.status(409).json({
+                success: false,
+                code: 'PHONE_EXISTS',
+                error: 'This phone number is already registered. You can update your preferences instead.',
+            });
+        }
+
         const userResult = await pool.query(
             `INSERT INTO users (name, phone) VALUES ($1, $2) RETURNING id`,
-            [first_name, phone_number]
+            [first_name, phone]
         );
         const userId = userResult.rows[0].id;
         const timezone = find(location_lat, location_lng)[0];
@@ -79,6 +106,13 @@ app.post('/api/signup', async (req, res) => {
 
         res.json({ success: true, userId });
     } catch (err) {
+        if (err.code === '23505') {
+            return res.status(409).json({
+                success: false,
+                code: 'PHONE_EXISTS',
+                error: 'This phone number is already registered. You can update your preferences instead.',
+            });
+        }
         res.status(500).json({ error: err.message });
     }
 });
@@ -104,6 +138,101 @@ app.post('/api/webhook/stop', async (req, res) => {
 });
 
 const { fetchAndCacheShabbatTimes } = require('./hebcal');
+
+app.post('/api/manage/lookup', async (req, res) => {
+    const { phone_number } = req.body;
+    if (!phone_number) {
+        return res.status(400).json({ error: 'Phone number is required' });
+    }
+
+    const phone = normalizePhone(phone_number);
+
+    try {
+        const userResult = await pool.query(
+            `SELECT u.id, u.name, ul.label AS location_label,
+                    ul.latitude AS location_lat, ul.longitude AS location_lng,
+                    up.zmanim_opinion, up.alert_minutes_before
+             FROM users u
+             INNER JOIN user_locations ul ON ul.user_id = u.id AND ul.is_primary = TRUE
+             LEFT JOIN user_preferences up ON up.user_id = u.id
+             WHERE u.is_active = TRUE
+               AND (u.phone = $1
+                    OR regexp_replace(u.phone, '\\D', '', 'g') = regexp_replace($1, '\\D', '', 'g'))`,
+            [phone]
+        );
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'No active account found for this number' });
+        }
+
+        const row = userResult.rows[0];
+        const alert_preferences = [
+            ...new Set(userResult.rows.map((r) => r.alert_minutes_before).filter((m) => m != null)),
+        ];
+
+        res.json({
+            success: true,
+            userId: row.id,
+            name: row.name,
+            location_label: row.location_label,
+            location_lat: row.location_lat,
+            location_lng: row.location_lng,
+            zmanim_opinion: row.zmanim_opinion || 'gra',
+            alert_preferences: alert_preferences.length ? alert_preferences : [18],
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/preferences/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const {
+        location_lat,
+        location_lng,
+        location_label,
+        zmanim_opinion,
+        alert_preferences,
+    } = req.body;
+
+    if (!location_lat || !location_lng || !location_label) {
+        return res.status(400).json({ error: 'A verified location is required' });
+    }
+
+    const minutesList = (Array.isArray(alert_preferences) ? alert_preferences : [18])
+        .slice(0, 3)
+        .map((m) => parseInt(m, 10))
+        .filter((m) => !Number.isNaN(m) && m > 0);
+
+    if (minutesList.length === 0) {
+        return res.status(400).json({ error: 'At least one valid alert preference is required' });
+    }
+
+    try {
+        const timezone = find(location_lat, location_lng)[0];
+
+        await pool.query(
+            `UPDATE user_locations
+             SET label = $1, latitude = $2, longitude = $3, timezone = $4
+             WHERE user_id = $5 AND is_primary = TRUE`,
+            [location_label, location_lat, location_lng, timezone, userId]
+        );
+
+        await pool.query(`DELETE FROM user_preferences WHERE user_id = $1`, [userId]);
+
+        for (const minutes of minutesList) {
+            await pool.query(
+                `INSERT INTO user_preferences (user_id, alert_minutes_before, zmanim_opinion)
+                 VALUES ($1, $2, $3)`,
+                [userId, minutes, zmanim_opinion || 'gra']
+            );
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 app.get('/shabbat-times/:userId', async (req, res) => {
     try {
