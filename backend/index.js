@@ -5,17 +5,29 @@ const { find } = require('geo-tz');
 
 const app = express();
 
+function normalizeOrigin(url) {
+    return (url || '').trim().replace(/\/$/, '');
+}
+
 const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
     .split(',')
-    .map((o) => o.trim());
+    .map(normalizeOrigin)
+    .filter(Boolean);
 
 app.use(cors({
     origin(origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
+        if (!origin) {
+            return callback(null, true);
         }
+        const normalized = normalizeOrigin(origin);
+        if (allowedOrigins.includes(normalized)) {
+            return callback(null, true);
+        }
+        if (normalized.endsWith('.up.railway.app')) {
+            return callback(null, true);
+        }
+        console.warn('CORS blocked origin:', origin, 'allowed:', allowedOrigins);
+        return callback(null, false);
     },
 }));
 app.use(express.json());
@@ -56,17 +68,26 @@ function normalizePhone(phone) {
     return trimmed;
 }
 
+function resolveTimezone(lat, lng) {
+    const zones = find(Number(lat), Number(lng));
+    return zones[0] || 'UTC';
+}
+
 app.post('/api/signup', async (req, res) => {
     const { first_name, phone_number, location_lat, location_lng, location_label, zmanim_opinion, alert_preferences } = req.body;
     const phone = normalizePhone(phone_number);
 
+    if (!first_name?.trim() || !phone) {
+        return res.status(400).json({ error: 'Name and phone number are required' });
+    }
+    if (location_lat == null || location_lng == null) {
+        return res.status(400).json({ error: 'A valid location is required' });
+    }
+
+    const opinion = ['gra', 'ma', 'rt'].includes(zmanim_opinion) ? zmanim_opinion : 'gra';
+
     try {
-        const existing = await pool.query(
-            `SELECT id FROM users
-             WHERE phone = $1
-                OR regexp_replace(phone, '\\D', '', 'g') = regexp_replace($1, '\\D', '', 'g')`,
-            [phone]
-        );
+        const existing = await pool.query(`SELECT id FROM users WHERE phone = $1`, [phone]);
 
         if (existing.rows.length > 0) {
             return res.status(409).json({
@@ -78,10 +99,10 @@ app.post('/api/signup', async (req, res) => {
 
         const userResult = await pool.query(
             `INSERT INTO users (name, phone) VALUES ($1, $2) RETURNING id`,
-            [first_name, phone]
+            [first_name.trim(), phone]
         );
         const userId = userResult.rows[0].id;
-        const timezone = find(location_lat, location_lng)[0];
+        const timezone = resolveTimezone(location_lat, location_lng);
 
         await pool.query(
             `INSERT INTO user_locations (user_id, label, latitude, longitude, timezone) VALUES ($1, $2, $3, $4, $5)`,
@@ -100,12 +121,13 @@ app.post('/api/signup', async (req, res) => {
         for (const minutes of minutesList) {
             await pool.query(
                 `INSERT INTO user_preferences (user_id, alert_minutes_before, zmanim_opinion) VALUES ($1, $2, $3)`,
-                [userId, minutes, zmanim_opinion]
+                [userId, minutes, opinion]
             );
         }
 
         res.json({ success: true, userId });
     } catch (err) {
+        console.error('Signup failed:', err.message);
         if (err.code === '23505') {
             return res.status(409).json({
                 success: false,
@@ -155,9 +177,7 @@ app.post('/api/manage/lookup', async (req, res) => {
              FROM users u
              INNER JOIN user_locations ul ON ul.user_id = u.id AND ul.is_primary = TRUE
              LEFT JOIN user_preferences up ON up.user_id = u.id
-             WHERE u.is_active = TRUE
-               AND (u.phone = $1
-                    OR regexp_replace(u.phone, '\\D', '', 'g') = regexp_replace($1, '\\D', '', 'g'))`,
+             WHERE u.is_active = TRUE AND u.phone = $1`,
             [phone]
         );
 
@@ -209,7 +229,7 @@ app.put('/api/preferences/:userId', async (req, res) => {
     }
 
     try {
-        const timezone = find(location_lat, location_lng)[0];
+        const timezone = resolveTimezone(location_lat, location_lng);
 
         await pool.query(
             `UPDATE user_locations
