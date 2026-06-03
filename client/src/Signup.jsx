@@ -1,9 +1,15 @@
+import { useNavigate } from 'react-router-dom';
 import SignupForm from './SignupForm';
 import './SignupForm.css';
 
 function Signup() {
+    const navigate = useNavigate();
+
     return (
         <div className="page-wrapper">
+            <button type="button" className="btn-back" onClick={() => navigate('/')}>
+                ← Back to home
+            </button>
             <div className="brand-header">
                 <h1>Shabbat Alert</h1>
                 <div className="candle-divider">
