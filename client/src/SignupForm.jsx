@@ -64,13 +64,13 @@ function SignupForm() {
                 data = JSON.parse(text);
             } catch {
                 const hint = text.includes('<!DOCTYPE')
-                    ? 'Backend/proxy misconfigured. Redeploy client + backend with latest code.'
-                    : text.slice(0, 120);
-                alert(`Server error (${res.status}). ${hint}`);
+                    ? 'Got HTML instead of JSON.'
+                    : text.slice(0, 100);
+                alert(`Server error (${res.status}). ${hint}\nAPI: ${getApiUrl()}`);
                 return;
             }
             if (!res.ok) {
-                alert(data.error || `Error (${res.status})`);
+                alert(`${data.error || 'Request failed'} (${res.status})\nAPI: ${getApiUrl()}`);
                 return;
             }
             if (data.success) {

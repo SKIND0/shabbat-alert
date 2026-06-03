@@ -1,11 +1,24 @@
-const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+let apiUrl = (process.env.REACT_APP_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+let configPromise = null;
 
 export function loadApiConfig() {
-    return Promise.resolve(API_URL);
+    if (configPromise) return configPromise;
+
+    configPromise = fetch(`/config.json?${Date.now()}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((cfg) => {
+            if (cfg?.apiUrl) {
+                apiUrl = String(cfg.apiUrl).replace(/\/$/, '');
+            }
+            return apiUrl;
+        })
+        .catch(() => apiUrl);
+
+    return configPromise;
 }
 
 export function getApiUrl() {
-    return API_URL;
+    return apiUrl;
 }
 
-export default API_URL;
+export default apiUrl;
