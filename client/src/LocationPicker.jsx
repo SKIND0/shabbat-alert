@@ -130,8 +130,6 @@ function LocationPicker({ location, onChange }) {
                         onChange={handleQueryChange}
                         onFocus={() => query.trim().length >= 2 && setOpen(true)}
                         autoComplete="off"
-                        aria-autocomplete="list"
-                        aria-expanded={open}
                     />
                     <button
                         type="button"
@@ -143,12 +141,12 @@ function LocationPicker({ location, onChange }) {
                         ▼
                     </button>
                     {open && (suggestions.length > 0 || searching) && (
-                        <ul className="location-suggestions" role="listbox">
+                        <ul className="location-suggestions">
                             {searching && suggestions.length === 0 && (
                                 <li className="location-suggestion muted">Searching…</li>
                             )}
                             {suggestions.map((place) => (
-                                <li key={place.id} role="option">
+                                <li key={place.id}>
                                     <button
                                         type="button"
                                         className="location-suggestion-btn"
