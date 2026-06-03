@@ -1,20 +1,10 @@
-let apiUrl = (process.env.REACT_APP_API_URL || 'http://localhost:3001').replace(/\/$/, '');
-let configPromise = null;
+// Production: empty = same-origin (client/server.js proxies to backend).
+// Development: direct to local backend, or CRA proxy.
+const isProd = process.env.NODE_ENV === 'production';
+let apiUrl = isProd ? '' : (process.env.REACT_APP_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
 export function loadApiConfig() {
-    if (configPromise) return configPromise;
-
-    configPromise = fetch('/config.json')
-        .then((res) => (res.ok ? res.json() : null))
-        .then((cfg) => {
-            if (cfg?.apiUrl) {
-                apiUrl = String(cfg.apiUrl).replace(/\/$/, '');
-            }
-            return apiUrl;
-        })
-        .catch(() => apiUrl);
-
-    return configPromise;
+    return Promise.resolve(getApiUrl());
 }
 
 export function getApiUrl() {

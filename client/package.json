@@ -13,17 +13,20 @@
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.14.2",
+    "express": "^4.21.2",
+    "http-proxy-middleware": "^3.0.3",
     "react-scripts": "5.0.1",
     "serve": "^14.2.4",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
-    "serve": "node scripts/write-config.js && serve -s build -l tcp://0.0.0.0:${PORT:-3000}",
-    "build": "react-scripts build && node scripts/write-config.js",
+    "serve": "node server.js",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
+  "proxy": "http://localhost:3001",
   "eslintConfig": {
     "extends": [
       "react-app",

@@ -58,7 +58,14 @@ function SignupForm() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
-            const data = await res.json();
+            const text = await res.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch {
+                alert(`Server error (${res.status}). Check backend deploy logs.`);
+                return;
+            }
             if (data.success) {
                 navigate('/signup/success', {
                     replace: true,
@@ -69,8 +76,9 @@ function SignupForm() {
             } else {
                 alert('Error: ' + data.error);
             }
-        } catch {
-            alert(`Could not reach the server (${getApiUrl()}). Check REACT_APP_API_URL on Railway and redeploy.`);
+        } catch (err) {
+            console.error('Signup failed:', err);
+            alert('Could not reach the server. Redeploy the client after setting REACT_APP_API_URL to your backend URL.');
         } finally {
             setSubmitting(false);
         }
