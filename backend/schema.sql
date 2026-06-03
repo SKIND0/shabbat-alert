@@ -97,7 +97,7 @@ CREATE TABLE shabbos_times (
 -- ------------------------------------------------------------
 CREATE TABLE alert_log (
   id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id         UUID        NOT NULL REFERENCES users(id) ON DELETE SET NULL,
+  user_id         UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   shabbos_time_id UUID        REFERENCES shabbos_times(id) ON DELETE SET NULL,
   alert_type      VARCHAR(20) NOT NULL            -- 'candle_lighting' | 'havdalah'
                     CHECK (alert_type IN ('candle_lighting', 'havdalah')),
