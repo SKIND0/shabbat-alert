@@ -1,5 +1,14 @@
-let apiUrl = (process.env.REACT_APP_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+let apiUrl = normalizeApiUrl(process.env.REACT_APP_API_URL || 'http://localhost:3001');
 let configPromise = null;
+
+function normalizeApiUrl(raw) {
+    if (!raw) return '';
+    let url = String(raw).trim().replace(/\/$/, '');
+    if (!/^https?:\/\//i.test(url)) {
+        url = url.startsWith('localhost') ? `http://${url}` : `https://${url}`;
+    }
+    return url;
+}
 
 export function loadApiConfig() {
     if (configPromise) return configPromise;
@@ -8,7 +17,7 @@ export function loadApiConfig() {
         .then((res) => (res.ok ? res.json() : null))
         .then((cfg) => {
             if (cfg?.apiUrl) {
-                apiUrl = String(cfg.apiUrl).replace(/\/$/, '');
+                apiUrl = normalizeApiUrl(cfg.apiUrl);
             }
             return apiUrl;
         })

@@ -4,7 +4,17 @@ const fs = require('fs');
 
 const PORT = process.env.PORT || 3000;
 const buildDir = path.join(__dirname, 'build');
-const apiUrl = process.env.REACT_APP_API_URL?.replace(/\/$/, '');
+
+function normalizeApiUrl(raw) {
+    if (!raw) return '';
+    let url = String(raw).trim().replace(/\/$/, '');
+    if (!/^https?:\/\//i.test(url)) {
+        url = `https://${url}`;
+    }
+    return url;
+}
+
+const apiUrl = normalizeApiUrl(process.env.REACT_APP_API_URL);
 
 if (!apiUrl) {
     console.error('Missing REACT_APP_API_URL on this Railway service.');
