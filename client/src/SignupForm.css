@@ -226,6 +226,132 @@ body {
     color: var(--gold-light);
 }
 
+.btn-back {
+    align-self: flex-start;
+    margin-bottom: 1.25rem;
+    background: transparent;
+    border: none;
+    color: var(--gold-dim);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s;
+}
+
+.btn-back:hover {
+    color: var(--gold-light);
+}
+
+.location-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.location-hint {
+    font-size: 0.75rem;
+    color: var(--cream-dim);
+    font-weight: 300;
+    line-height: 1.45;
+    margin-bottom: 0.25rem;
+}
+
+.location-search-row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+}
+
+.location-input-wrap {
+    position: relative;
+    flex: 1;
+}
+
+.location-input-wrap input {
+    width: 100%;
+    padding-right: 2.5rem;
+}
+
+.btn-location-search {
+    position: absolute;
+    right: 0.35rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--gold);
+    font-size: 0.7rem;
+    cursor: pointer;
+    padding: 0.4rem 0.5rem;
+    line-height: 1;
+}
+
+.btn-location-search:hover {
+    color: var(--gold-light);
+}
+
+.location-suggestions {
+    position: absolute;
+    z-index: 20;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    margin: 0;
+    padding: 0.25rem 0;
+    list-style: none;
+    background: var(--navy-mid);
+    border: 1px solid rgba(201, 168, 76, 0.25);
+    border-radius: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.location-suggestion-btn {
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 0.65rem 1rem;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 300;
+    color: var(--cream);
+    cursor: pointer;
+    line-height: 1.35;
+}
+
+.location-suggestion-btn:hover {
+    background: rgba(201, 168, 76, 0.1);
+}
+
+.location-suggestion.muted {
+    padding: 0.65rem 1rem;
+    font-size: 0.8rem;
+    color: var(--cream-dim);
+}
+
+.location-status {
+    font-size: 0.75rem;
+    font-weight: 300;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.location-status.valid {
+    color: var(--gold-light);
+}
+
+.location-status.warn {
+    color: var(--cream-dim);
+}
+
+.location-status.error {
+    color: var(--error);
+}
+
 .location-row {
     display: flex;
     gap: 0.6rem;
@@ -283,6 +409,91 @@ body {
 
 .btn-submit:active {
     transform: translateY(0);
+}
+
+.btn-submit:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.signup-duplicate {
+    background: rgba(224, 112, 112, 0.08);
+    border: 1px solid rgba(224, 112, 112, 0.35);
+    border-radius: 8px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.signup-duplicate p {
+    font-size: 0.85rem;
+    color: var(--cream);
+    font-weight: 300;
+    line-height: 1.5;
+    margin: 0 0 0.5rem;
+}
+
+.signup-duplicate p:last-child {
+    margin-bottom: 0;
+}
+
+.signup-duplicate a {
+    color: var(--gold-light);
+    font-weight: 500;
+}
+
+.consent-group {
+    margin-bottom: 1.4rem;
+}
+
+.consent-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 300;
+    letter-spacing: 0.03em;
+    text-transform: none;
+    color: var(--cream-dim);
+    line-height: 1.55;
+}
+
+.consent-label input[type="checkbox"] {
+    width: 1.125rem;
+    height: 1.125rem;
+    min-width: 1.125rem;
+    margin-top: 0.2rem;
+    padding: 0;
+    flex-shrink: 0;
+    cursor: pointer;
+    accent-color: var(--gold);
+    appearance: auto;
+    -webkit-appearance: checkbox;
+    border-radius: 3px;
+}
+
+.consent-label span {
+    flex: 1;
+}
+
+.success-card .success-message {
+    margin-bottom: 1.75rem;
+    line-height: 1.6;
+}
+
+.success-manage {
+    margin-top: 1.25rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--cream-dim);
+    font-weight: 300;
+}
+
+.success-manage a {
+    color: var(--gold-light);
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
 
 .footer-note {

@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import './SignupForm.css';
 import API_URL from './api';
+import LocationPicker from './LocationPicker';
 
 function SignupForm() {
     const [formData, setFormData] = useState({
@@ -13,74 +15,63 @@ function SignupForm() {
         alert_preferences: [18]
     });
     const [consented, setConsented] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [duplicatePhone, setDuplicatePhone] = useState(false);
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleGPS = () => {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                setFormData({
-                    ...formData,
-                    location_lat: pos.coords.latitude,
-                    location_lng: pos.coords.longitude,
-                    location_label: `${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`
-                });
-            },
-            (err) => {
-                alert('Could not get location. Please enter it manually.');
-            }
-        );
+    const handleLocationChange = (loc) => {
+        setFormData((prev) => ({ ...prev, ...loc }));
     };
 
-    const geocodeLocation = async (label) => {
-        if (!label) return;
-        try {
-            const res = await fetch(
-                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(label)}&format=json&limit=1`
-            );
-            const data = await res.json();
-            if (data.length > 0) {
-                setFormData(prev => ({
-                    ...prev,
-                    location_lat: parseFloat(data[0].lat),
-                    location_lng: parseFloat(data[0].lon),
-                    location_label: label
-                }));
-            } else {
-                alert('Location not found. Try a different city name.');
-            }
-        } catch {
-            alert('Could not look up location.');
-        }
-    };
-    const handleSubmit = async () => {
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (submitting) return;
+
         if (!consented) {
             alert('Please agree to receive SMS alerts.');
             return;
         }
-        if (!formData.first_name || !formData.phone_number) {
+        if (!formData.first_name?.trim() || !formData.phone_number?.trim()) {
             alert('Please enter your name and phone number.');
             return;
         }
         if (!formData.location_lat || !formData.location_lng) {
-            alert('Please enter a location or use Detect.');
+            alert('Please select a real city from the search list or use Detect.');
             return;
         }
 
-        const res = await fetch(`${API_URL}/api/signup`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-        const data = await res.json();
-        if (data.success) alert('You\'re signed up!');
-        else alert('Error: ' + data.error);
+        setSubmitting(true);
+        setDuplicatePhone(false);
+        try {
+            const res = await fetch(`${API_URL}/api/signup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            const data = await res.json();
+            if (data.success) {
+                navigate('/signup/success', {
+                    replace: true,
+                    state: { name: formData.first_name },
+                });
+            } else if (res.status === 409 || data.code === 'PHONE_EXISTS') {
+                setDuplicatePhone(true);
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch {
+            alert('Could not reach the server. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
-        <div className="signup-card">
+        <form className="signup-card" onSubmit={handleSubmit}>
             <h2>Create your alert</h2>
             <p className="card-subtitle">One-time setup · takes under a minute</p>
 
@@ -88,9 +79,10 @@ function SignupForm() {
                 <label>First name</label>
                 <input
                     name="first_name"
-                    placeholder="Sarah"
+                    placeholder="First name"
                     value={formData.first_name}
                     onChange={handleChange}
+                    autoComplete="given-name"
                 />
             </div>
 
@@ -98,9 +90,11 @@ function SignupForm() {
                 <label>Phone number</label>
                 <input
                     name="phone_number"
+                    type="tel"
                     placeholder="+1 (212) 555-0100"
                     value={formData.phone_number}
                     onChange={handleChange}
+                    autoComplete="tel"
                 />
             </div>
 
@@ -129,7 +123,7 @@ function SignupForm() {
                                 value={alert}
                                 onChange={(e) => {
                                     const updated = [...formData.alert_preferences];
-                                    updated[index] = parseInt(e.target.value);
+                                    updated[index] = parseInt(e.target.value, 10);
                                     setFormData({ ...formData, alert_preferences: updated });
                                 }}
                             />
@@ -138,6 +132,7 @@ function SignupForm() {
                     ))}
                     {formData.alert_preferences.length < 3 && (
                         <button
+                            type="button"
                             className="btn-add-alert"
                             onClick={() => setFormData({
                                 ...formData,
@@ -149,32 +144,51 @@ function SignupForm() {
                     )}
                 </div>
             </div>
+
             <div className="form-group">
                 <label>Location</label>
-                <div className="location-row">
-                    <input
-                        name="location_label"
-                        placeholder="Brooklyn, NY"
-                        value={formData.location_label}
-                        onChange={handleChange}
-                        onBlur={(e) => geocodeLocation(e.target.value)}
-                    />
-                    <button className="btn-gps" onClick={handleGPS}>
-                        Detect
-                    </button>
-                </div>
+                <LocationPicker
+                    location={{
+                        lat: formData.location_lat,
+                        lng: formData.location_lng,
+                        label: formData.location_label,
+                    }}
+                    onChange={handleLocationChange}
+                />
             </div>
+
+            {duplicatePhone && (
+                <div className="signup-duplicate" role="alert">
+                    <p>This phone number is already registered.</p>
+                    <p>
+                        <Link to="/preferences">Update your preferences</Link>
+                        {' '}to change your location, alert times, or zmanim.
+                    </p>
+                </div>
+            )}
+
             <div className="divider" />
-            <div className="form-group">
-                <label className="checkbox-label">
-                    <input type="checkbox" checked={consented} onChange={e => setConsented(e.target.checked)} />
-                    I agree to receive SMS alerts. Message and data rates may apply. Reply STOP to unsubscribe.
+            <div className="consent-group">
+                <label className="consent-label">
+                    <input
+                        type="checkbox"
+                        checked={consented}
+                        onChange={(e) => setConsented(e.target.checked)}
+                    />
+                    <span>
+                        I agree to receive SMS alerts. Message and data rates may apply.
+                        Reply STOP to unsubscribe.
+                    </span>
                 </label>
             </div>
-            <button className="btn-submit" onClick={handleSubmit}>
-                Send me Shabbat alerts
+            <button
+                type="submit"
+                className="btn-submit"
+                disabled={submitting || !consented}
+            >
+                {submitting ? 'Signing you up…' : 'Send me Shabbat alerts'}
             </button>
-        </div>
+        </form>
     );
 }
 
