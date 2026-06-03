@@ -4,7 +4,20 @@ const pool = require('./db');
 const { find } = require('geo-tz');
 
 const app = express();
-app.use(cors({ origin: 'http://localhost:3000' }));
+
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
+    .split(',')
+    .map((o) => o.trim());
+
+app.use(cors({
+    origin(origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -123,6 +136,6 @@ app.get('/shabbat-times/:userId', async (req, res) => {
 const { initScheduler } = require('./scheduler');
 initScheduler();
 
-app.listen(3001, () => {
-    console.log('Server running on port 3001');
+app.listen(process.env.PORT || 3001, () => {
+    console.log(`Server running on port ${process.env.PORT || 3001}`);
 });

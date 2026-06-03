@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './AlertPreferences.css';
+import API_URL from './api';
 
 function AlertPreferences() {
     const [step, setStep] = useState('phone');
@@ -19,7 +20,7 @@ function AlertPreferences() {
         if (!phone) { alert('Please enter your phone number.'); return; }
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3001/api/verify/send', {
+            const res = await fetch(`${API_URL}/api/verify/send`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone_number: phone })
@@ -37,7 +38,7 @@ function AlertPreferences() {
         if (!code) { alert('Please enter the code.'); return; }
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3001/api/verify/confirm', {
+            const res = await fetch(`${API_URL}/api/verify/confirm`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone_number: phone, code })
@@ -101,7 +102,7 @@ function AlertPreferences() {
         }
         setLoading(true);
         try {
-            const res = await fetch(`http://localhost:3001/api/preferences/${userId}`, {
+            const res = await fetch(`${API_URL}/api/preferences/${userId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(prefs)
