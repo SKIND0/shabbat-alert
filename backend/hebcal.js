@@ -1,4 +1,3 @@
-const fetch = require('node-fetch');
 const pool = require('./db');
 
 async function fetchAndCacheShabbatTimes(locationId, latitude, longitude, timezone) {
