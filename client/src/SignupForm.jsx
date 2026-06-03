@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './SignupForm.css';
-import API_URL from './api';
+import { loadApiConfig, getApiUrl } from './api';
 import LocationPicker from './LocationPicker';
 
 function SignupForm() {
@@ -17,7 +17,12 @@ function SignupForm() {
     const [consented, setConsented] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [duplicatePhone, setDuplicatePhone] = useState(false);
+    const [apiReady, setApiReady] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        loadApiConfig().finally(() => setApiReady(true));
+    }, []);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -47,7 +52,8 @@ function SignupForm() {
         setSubmitting(true);
         setDuplicatePhone(false);
         try {
-            const res = await fetch(`${API_URL}/api/signup`, {
+            await loadApiConfig();
+            const res = await fetch(`${getApiUrl()}/api/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
@@ -64,7 +70,7 @@ function SignupForm() {
                 alert('Error: ' + data.error);
             }
         } catch {
-            alert('Could not reach the server. Please try again.');
+            alert(`Could not reach the server (${getApiUrl()}). Check REACT_APP_API_URL on Railway and redeploy.`);
         } finally {
             setSubmitting(false);
         }
@@ -184,7 +190,7 @@ function SignupForm() {
             <button
                 type="submit"
                 className="btn-submit"
-                disabled={submitting || !consented}
+                disabled={submitting || !consented || !apiReady}
             >
                 {submitting ? 'Signing you up…' : 'Send me Shabbat alerts'}
             </button>

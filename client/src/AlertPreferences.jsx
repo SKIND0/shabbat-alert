@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './AlertPreferences.css';
 import './SignupForm.css';
-import API_URL from './api';
+import { loadApiConfig, getApiUrl } from './api';
 import LocationPicker from './LocationPicker';
 
 function AlertPreferences() {
@@ -26,7 +26,8 @@ function AlertPreferences() {
         }
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/api/manage/lookup`, {
+            await loadApiConfig();
+            const res = await fetch(`${getApiUrl()}/api/manage/lookup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone_number: phone.trim() })
@@ -62,7 +63,8 @@ function AlertPreferences() {
         }
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/api/preferences/${userId}`, {
+            await loadApiConfig();
+            const res = await fetch(`${getApiUrl()}/api/preferences/${userId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(prefs)

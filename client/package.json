@@ -19,8 +19,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "serve": "serve -s build -l tcp://0.0.0.0:${PORT:-3000}",
-    "build": "react-scripts build",
+    "serve": "node scripts/write-config.js && serve -s build -l tcp://0.0.0.0:${PORT:-3000}",
+    "build": "react-scripts build && node scripts/write-config.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
