@@ -19,7 +19,12 @@ function formatLocalTime(utcValue, timezone) {
 
 function buildShabbatMessage(name, candleLightingUtc, timezone) {
     const time = formatLocalTime(candleLightingUtc, timezone);
-    return `Hey ${firstName(name)}, Shabbat starts at ${time} tonight. Shabbat Shalom!`;
+    const base = `Hey ${firstName(name)}, Shabbat starts at ${time} tonight. Shabbat Shalom!`;
+    const clientUrl = (process.env.CLIENT_URL || '').replace(/\/$/, '');
+    if (clientUrl) {
+        return `${base} On vacation? Update your location: ${clientUrl}/preferences`;
+    }
+    return `${base} On vacation? Update your location on the Shabbat Alert site.`;
 }
 
 async function getActiveUsersWithPreferences() {
