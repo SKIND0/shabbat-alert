@@ -63,7 +63,10 @@ function SignupForm() {
             try {
                 data = JSON.parse(text);
             } catch {
-                alert(`Server error (${res.status}). ${text.slice(0, 120)}`);
+                const hint = text.includes('<!DOCTYPE')
+                    ? 'Backend/proxy misconfigured. Redeploy client + backend with latest code.'
+                    : text.slice(0, 120);
+                alert(`Server error (${res.status}). ${hint}`);
                 return;
             }
             if (!res.ok) {
