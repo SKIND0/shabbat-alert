@@ -1,14 +1,11 @@
-// Production: empty = same-origin (client/server.js proxies to backend).
-// Development: direct to local backend, or CRA proxy.
-const isProd = process.env.NODE_ENV === 'production';
-let apiUrl = isProd ? '' : (process.env.REACT_APP_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
 export function loadApiConfig() {
-    return Promise.resolve(getApiUrl());
+    return Promise.resolve(API_URL);
 }
 
 export function getApiUrl() {
-    return apiUrl;
+    return API_URL;
 }
 
-export default apiUrl;
+export default API_URL;
