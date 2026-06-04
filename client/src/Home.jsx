@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import './Home.css';
 
 function Home() {
@@ -37,7 +37,8 @@ function Home() {
             </div>
 
             <p className="footer-note">
-                SMS alerts · No app download required · Reply STOP to unsubscribe
+                SMS alerts · No app download required · Reply STOP to unsubscribe ·{' '}
+                <Link to="/privacy">Privacy</Link> · <Link to="/terms">Terms</Link>
             </p>
         </div>
     );

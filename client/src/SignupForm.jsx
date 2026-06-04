@@ -198,7 +198,9 @@ function SignupForm() {
                     />
                     <span>
                         I agree to receive SMS alerts. Message and data rates may apply.
-                        Reply STOP to unsubscribe.
+                        Reply STOP to unsubscribe. See our{' '}
+                        <Link to="/privacy">Privacy Policy</Link> and{' '}
+                        <Link to="/terms">Terms</Link>.
                     </span>
                 </label>
             </div>

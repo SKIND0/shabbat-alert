@@ -18,10 +18,27 @@ app.use(express.urlencoded({ extended: false }));
 //});
 
 const { sendSMS } = require('./twilio');
+const { buildShabbatMessage } = require('./scheduler');
 
 app.get('/test-sms', async (req, res) => {
-    const result = await sendSMS(req.query.to, 'test');
+    if (!req.query.to) {
+        return res.status(400).json({ error: 'Add ?to=+1XXXXXXXXXX (E.164 format)' });
+    }
+    const result = await sendSMS(req.query.to, 'Shabbat Alert test — Twilio is connected!');
     res.json(result);
+});
+
+app.get('/test-shabbat-sms', async (req, res) => {
+    if (!req.query.to) {
+        return res.status(400).json({ error: 'Add ?to=+1XXXXXXXXXX (E.164 format)' });
+    }
+    const message = buildShabbatMessage(
+        req.query.name || 'Friend',
+        new Date(Date.now() + 2 * 60 * 60 * 1000),
+        'America/New_York'
+    );
+    const result = await sendSMS(req.query.to, message);
+    res.json({ ...result, preview: message });
 });
 
 

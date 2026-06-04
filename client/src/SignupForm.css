@@ -442,6 +442,34 @@ body {
     font-weight: 500;
 }
 
+.consent-label a {
+    color: var(--gold-light);
+}
+
+.legal-card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    color: var(--gold-light);
+    margin: 1.25rem 0 0.5rem;
+}
+
+.legal-card p,
+.legal-list {
+    font-size: 0.88rem;
+    color: var(--cream-dim);
+    line-height: 1.6;
+    font-weight: 300;
+}
+
+.legal-list {
+    padding-left: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.footer-note a {
+    color: var(--gold-dim);
+}
+
 .consent-group {
     margin-bottom: 1.4rem;
 }
