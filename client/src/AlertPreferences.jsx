@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './SignupForm.css';
 import { loadApiConfig, getApiUrl } from './api';
 import LocationPicker from './LocationPicker';
