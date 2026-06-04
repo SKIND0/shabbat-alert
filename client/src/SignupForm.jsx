@@ -188,7 +188,7 @@ function SignupForm() {
                     <p>This phone number is already registered.</p>
                     <p>
                         <Link to="/preferences">Update your preferences</Link>
-                        {' '}to change your location, alert times, or zmanim.
+                        {' '}to change your location or alert times.
                     </p>
                 </div>
             )}
@@ -203,8 +203,8 @@ function SignupForm() {
                     />
                     <span>
                         I agree to receive recurring SMS messages from Shabbat Alert with
-                        Shabbat and holiday candle-lighting reminders (typically weekly plus
-                        holidays). Message and data rates may apply. Reply STOP to unsubscribe.
+                        weekly Shabbat candle-lighting reminders. Message and data rates may apply.
+                        Reply STOP to unsubscribe.
                         Privacy Policy: https://shabbat-alert-production.up.railway.app/privacy
                         · Terms: https://shabbat-alert-production.up.railway.app/terms
                     </span>

@@ -17,18 +17,18 @@ function Home() {
                             <div className="dot"></div>
                             <div className="line right"></div>
                         </div>
-                        <p className="home-tagline">Never miss the zman again</p>
+                        <p className="home-tagline">Light candles on time, every week</p>
                     </div>
 
                     <div className="home-explanation">
                         <p>
-                            Get a personalized SMS reminder before Shabbat and Jewish holidays —
-                            based on your location and how early you want to be notified.
+                            Get a personalized SMS reminder before Shabbat candle lighting —
+                            based on your city and how early you want to be notified.
                         </p>
                         <p className="sms-disclosure">
                             Shabbat Alert is an SMS-only service. By signing up you opt in to
-                            recurring text messages (typically weekly plus holidays). Message and
-                            data rates may apply. Reply STOP to unsubscribe.
+                            weekly Shabbat reminder texts. Message and data rates may apply.
+                            Reply STOP to unsubscribe.
                         </p>
                         <ul className="home-features">
                             <li><span className="feature-dot">✦</span> One-time setup, under a minute</li>

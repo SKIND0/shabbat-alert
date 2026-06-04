@@ -74,19 +74,55 @@ CREATE TABLE user_preferences (
 CREATE INDEX idx_user_preferences_user_id ON user_preferences(user_id);
 
 -- ------------------------------------------------------------
--- SHABBOS TIMES CACHE
--- Stores the candle-lighting / Havdalah times fetched from
--- Hebcal so we're not hammering the external API on every send.
--- Keyed on (location_id, parasha_date).
+-- PRESET LOCATIONS (shared Hebcal cache for popular cities)
+-- ------------------------------------------------------------
+CREATE TABLE preset_locations (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  label       VARCHAR(120) NOT NULL UNIQUE,
+  city        VARCHAR(80)  NOT NULL,
+  state       VARCHAR(80),
+  country     VARCHAR(80)  NOT NULL,
+  latitude    NUMERIC(9,6) NOT NULL,
+  longitude   NUMERIC(9,6) NOT NULL,
+  timezone    VARCHAR(60)  NOT NULL,
+  created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+-- ------------------------------------------------------------
+-- SHABBOS TIMES CACHE (shared across users near the same city)
+-- ------------------------------------------------------------
+CREATE TABLE shabbos_times_cache (
+  id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  preset_location_id  UUID REFERENCES preset_locations(id) ON DELETE CASCADE,
+  cache_lat           NUMERIC(9,6),
+  cache_lng           NUMERIC(9,6),
+  parasha_date        DATE NOT NULL,
+  parasha_name        VARCHAR(100),
+  candle_lighting_utc TIMESTAMPTZ NOT NULL,
+  sunset_utc          TIMESTAMPTZ NOT NULL,
+  havdalah_utc        TIMESTAMPTZ NOT NULL,
+  fetched_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX uq_shabbos_cache_preset_date
+  ON shabbos_times_cache (preset_location_id, parasha_date)
+  WHERE preset_location_id IS NOT NULL;
+
+CREATE UNIQUE INDEX uq_shabbos_cache_coord_date
+  ON shabbos_times_cache (cache_lat, cache_lng, parasha_date)
+  WHERE preset_location_id IS NULL;
+
+-- ------------------------------------------------------------
+-- SHABBOS TIMES (per user location)
 -- ------------------------------------------------------------
 CREATE TABLE shabbos_times (
   id                  UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   location_id         UUID        NOT NULL REFERENCES user_locations(id) ON DELETE CASCADE,
-  parasha_date        DATE        NOT NULL,       -- The Friday of that Shabbos
-  parasha_name        VARCHAR(100),              -- e.g. "Behar-Bechukotai"
+  parasha_date        DATE        NOT NULL,
+  parasha_name        VARCHAR(100),
   candle_lighting_utc TIMESTAMPTZ NOT NULL,
+  sunset_utc          TIMESTAMPTZ NOT NULL,
   havdalah_utc        TIMESTAMPTZ NOT NULL,
-  fetched_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE (location_id, parasha_date)
 );
 

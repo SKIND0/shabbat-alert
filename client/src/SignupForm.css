@@ -589,3 +589,7 @@ body {
     color: var(--error);
     margin-left: 0.5rem;
 }
+
+.legal-page a {
+    color: var(--gold-light);
+}

@@ -17,9 +17,11 @@ function formatLocalTime(utcValue, timezone) {
     }).format(new Date(utcValue));
 }
 
-function buildShabbatMessage(name, candleLightingUtc, timezone) {
-    const time = formatLocalTime(candleLightingUtc, timezone);
-    const base = `Hey ${firstName(name)}, Shabbat starts at ${time} tonight. Shabbat Shalom!`;
+function buildShabbatMessage(name, candleLightingUtc, sunsetUtc, timezone) {
+    const candles = formatLocalTime(candleLightingUtc, timezone);
+    const sunset = formatLocalTime(sunsetUtc, timezone);
+    const base =
+        `Hey ${firstName(name)}, candle lighting at ${candles} (Shabbat starts ${sunset}). Shabbat Shalom!`;
     const clientUrl = (process.env.CLIENT_URL || '').replace(/\/$/, '');
     if (clientUrl) {
         return `${base} On vacation? Update your location: ${clientUrl}/preferences`;
@@ -34,6 +36,7 @@ async function getActiveUsersWithPreferences() {
             u.name,
             u.phone,
             ul.id AS location_id,
+            ul.label AS location_label,
             ul.latitude,
             ul.longitude,
             ul.timezone,
@@ -47,7 +50,7 @@ async function getActiveUsersWithPreferences() {
             ON ul.user_id = u.id AND ul.is_primary = TRUE
         LEFT JOIN user_preferences up ON up.user_id = u.id
         WHERE u.is_active = TRUE
-        GROUP BY u.id, u.name, u.phone, ul.id, ul.latitude, ul.longitude, ul.timezone
+        GROUP BY u.id, u.name, u.phone, ul.id, ul.label, ul.latitude, ul.longitude, ul.timezone
     `);
     return rows;
 }
@@ -66,7 +69,8 @@ async function planShabbatAlerts() {
                 user.location_id,
                 user.latitude,
                 user.longitude,
-                user.timezone
+                user.timezone,
+                user.location_label
             );
 
             const candleUtc = new Date(times.candle_lighting_utc);
@@ -122,7 +126,8 @@ async function sendDueAlerts() {
             u.name,
             u.phone,
             ul.timezone,
-            st.candle_lighting_utc
+            st.candle_lighting_utc,
+            st.sunset_utc
         FROM alert_log al
         INNER JOIN users u ON u.id = al.user_id AND u.is_active = TRUE
         INNER JOIN shabbos_times st ON st.id = al.shabbos_time_id
@@ -136,6 +141,7 @@ async function sendDueAlerts() {
         const message = buildShabbatMessage(
             alert.name,
             alert.candle_lighting_utc,
+            alert.sunset_utc,
             alert.timezone
         );
         const result = await sendSMS(alert.phone, message);

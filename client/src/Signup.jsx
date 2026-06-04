@@ -18,7 +18,7 @@ function Signup() {
                         <div className="dot"></div>
                         <div className="line right"></div>
                     </div>
-                    <p className="tagline">Never miss the zman again</p>
+                    <p className="tagline">Light candles on time, every week</p>
                 </div>
 
                 <SignupForm />
