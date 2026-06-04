@@ -32,9 +32,12 @@ app.get('/test-shabbat-sms', async (req, res) => {
     if (!req.query.to) {
         return res.status(400).json({ error: 'Add ?to=+1XXXXXXXXXX (E.164 format)' });
     }
+    const candleAt = new Date(Date.now() + 2 * 60 * 60 * 1000);
+    const sunsetAt = new Date(candleAt.getTime() + 18 * 60 * 1000);
     const message = buildShabbatMessage(
         req.query.name || 'Friend',
-        new Date(Date.now() + 2 * 60 * 60 * 1000),
+        candleAt,
+        sunsetAt,
         'America/New_York'
     );
     const result = await sendSMS(req.query.to, message);
@@ -210,8 +213,7 @@ app.post('/api/webhook/stop', async (req, res) => {
         res.status(500).send('Error');
     }
 });
-
-const { fetchAndCacheShabbatTimes } = require('./hebcal');
+const { fetchAndCacheShabbatTimes, seedPresetLocations } = require('./hebcal');
 
 app.post('/api/manage/lookup', async (req, res) => {
     const { phone_number } = req.body;
@@ -286,9 +288,21 @@ app.put('/api/preferences/:userId', async (req, res) => {
         await pool.query(
             `UPDATE user_locations
              SET label = $1, latitude = $2, longitude = $3, timezone = $4
-             WHERE user_id = $5 AND is_primary = TRUE`,
+             WHERE user_id = $5 AND is_primary = TRUE
+             RETURNING id`,
             [location_label, location_lat, location_lng, timezone, userId]
         );
+
+        const locUpdate = await pool.query(
+            `SELECT id FROM user_locations WHERE user_id = $1 AND is_primary = TRUE`,
+            [userId]
+        );
+        if (locUpdate.rows[0]) {
+            await pool.query(
+                `DELETE FROM shabbos_times WHERE location_id = $1`,
+                [locUpdate.rows[0].id]
+            );
+        }
 
         await pool.query(`DELETE FROM user_preferences WHERE user_id = $1`, [userId]);
 
@@ -337,7 +351,8 @@ app.get('/shabbat-times/:userId', async (req, res) => {
             loc.id,
             loc.latitude,
             loc.longitude,
-            loc.timezone
+            loc.timezone,
+            loc.label
         );
 
         res.json(times);
@@ -356,6 +371,10 @@ app.use((err, req, res, next) => {
 
 const { initScheduler } = require('./scheduler');
 initScheduler();
+
+seedPresetLocations().catch((err) => {
+    console.error('Preset location seed failed (run migrations if tables are missing):', err.message);
+});
 
 app.listen(process.env.PORT || 3001, () => {
     console.log(`Server running on port ${process.env.PORT || 3001}`);
