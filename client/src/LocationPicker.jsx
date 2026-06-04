@@ -4,7 +4,6 @@ import { searchPlaces, reverseGeocode } from './geocode';
 function LocationPicker({ location, onChange }) {
     const [query, setQuery] = useState(location.label || '');
     const [suggestions, setSuggestions] = useState([]);
-    const [open, setOpen] = useState(false);
     const [searching, setSearching] = useState(false);
     const [gpsLoading, setGpsLoading] = useState(false);
     const [error, setError] = useState('');
@@ -19,7 +18,7 @@ function LocationPicker({ location, onChange }) {
     useEffect(() => {
         const onDocClick = (e) => {
             if (wrapRef.current && !wrapRef.current.contains(e.target)) {
-                setOpen(false);
+                setSuggestions([]);
             }
         };
         document.addEventListener('mousedown', onDocClick);
@@ -27,7 +26,7 @@ function LocationPicker({ location, onChange }) {
     }, []);
 
     useEffect(() => {
-        if (!open || query.trim().length < 2) {
+        if (query.trim().length < 2) {
             setSuggestions([]);
             return undefined;
         }
@@ -38,18 +37,15 @@ function LocationPicker({ location, onChange }) {
             try {
                 const results = await searchPlaces(query);
                 setSuggestions(results);
-                if (results.length === 0) {
-                    setError('No matching places. Try "Austin, TX" or your city and state.');
-                }
             } catch {
                 setError('Could not search locations. Check your connection.');
             } finally {
                 setSearching(false);
             }
-        }, 400);
+        }, 300);
 
         return () => clearTimeout(timer);
-    }, [query, open]);
+    }, [query]);
 
     const selectPlace = (place) => {
         onChange({
@@ -58,7 +54,6 @@ function LocationPicker({ location, onChange }) {
             location_label: place.label,
         });
         setQuery(place.label);
-        setOpen(false);
         setSuggestions([]);
         setError('');
     };
@@ -72,14 +67,6 @@ function LocationPicker({ location, onChange }) {
             location_lng: null,
             location_label: value,
         });
-    };
-
-    const runSearch = () => {
-        if (query.trim().length < 2) {
-            setError('Type at least 2 characters, then search.');
-            return;
-        }
-        setOpen(true);
     };
 
     const handleGPS = () => {
@@ -100,47 +87,39 @@ function LocationPicker({ location, onChange }) {
                         location_label: label,
                     });
                     setQuery(label);
-                    setOpen(false);
+                    setSuggestions([]);
                 } catch {
-                    setError('Got GPS coordinates but could not resolve a place name. Search manually.');
+                    setError('Could not resolve your city. Please search and pick from the list.');
                 } finally {
                     setGpsLoading(false);
                 }
             },
             () => {
                 setGpsLoading(false);
-                setError('Location blocked or unavailable. Search for your city (e.g. Austin, TX).');
+                setError('Location blocked or unavailable. Search for your city (e.g. Brooklyn, New York).');
             },
             { enableHighAccuracy: false, timeout: 12000 }
         );
     };
 
+    const showSuggestions = query.trim().length >= 2 && (searching || suggestions.length > 0);
+
     return (
         <div className="location-picker" ref={wrapRef}>
             <p className="location-hint">
-                We use your city for candle-lighting times. Traveling? You can update anytime under Manage alerts.
+                City and state only — e.g. Brooklyn, New York, United States. No street addresses.
             </p>
             <div className="location-search-row">
                 <div className="location-input-wrap">
                     <input
                         type="text"
                         name="location_label"
-                        placeholder="City, State (e.g. Austin, TX)"
+                        placeholder="Start typing your city…"
                         value={query}
                         onChange={handleQueryChange}
-                        onFocus={() => query.trim().length >= 2 && setOpen(true)}
                         autoComplete="off"
                     />
-                    <button
-                        type="button"
-                        className="btn-location-search"
-                        onClick={runSearch}
-                        aria-label="Search cities"
-                        title="Search cities"
-                    >
-                        ▼
-                    </button>
-                    {open && (suggestions.length > 0 || searching) && (
+                    {showSuggestions && (
                         <ul className="location-suggestions">
                             {searching && suggestions.length === 0 && (
                                 <li className="location-suggestion muted">Searching…</li>
@@ -156,6 +135,11 @@ function LocationPicker({ location, onChange }) {
                                     </button>
                                 </li>
                             ))}
+                            {!searching && suggestions.length === 0 && (
+                                <li className="location-suggestion muted">
+                                    No cities found. Try &quot;Brooklyn, New York&quot;.
+                                </li>
+                            )}
                         </ul>
                     )}
                 </div>
@@ -173,7 +157,7 @@ function LocationPicker({ location, onChange }) {
             )}
             {error && <p className="location-status error">{error}</p>}
             {!isValid && !error && query.trim().length > 0 && (
-                <p className="location-status warn">Select a city from the list or use Detect.</p>
+                <p className="location-status warn">Pick a city from the list or use Detect.</p>
             )}
         </div>
     );
