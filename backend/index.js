@@ -61,6 +61,51 @@ function normalizePhone(phone) {
     return trimmed;
 }
 
+function firstName(fullName) {
+    const trimmed = (fullName || '').trim();
+    return trimmed.split(/\s+/)[0] || 'there';
+}
+
+function describeAlertMinutes(minutesList) {
+    const valid = minutesList.filter((m) => m > 0);
+    if (valid.length === 0) return '18 minutes';
+    if (valid.length === 1) {
+        return `${valid[0]} minute${valid[0] === 1 ? '' : 's'}`;
+    }
+    return valid.map((m) => `${m} min`).join(' and ');
+}
+
+function buildWelcomeMessage(name, minutesList, locationLabel) {
+    const city = (locationLabel || 'your city').split(',')[0].trim();
+    return (
+        `Welcome to Shabbat Alert, ${firstName(name)}! ` +
+        `You'll get texts ${describeAlertMinutes(minutesList)} before candle lighting in ${city}. ` +
+        `Reply STOP to unsubscribe.`
+    );
+}
+
+function buildSettingsUpdatedMessage(name, minutesList, locationLabel) {
+    const city = (locationLabel || 'your city').split(',')[0].trim();
+    return (
+        `Shabbat Alert: Preferences saved. ` +
+        `Reminders ${describeAlertMinutes(minutesList)} before candle lighting in ${city}. ` +
+        `Reply STOP to unsubscribe.`
+    );
+}
+
+async function sendOptionalSMS(to, message, context) {
+    try {
+        const result = await sendSMS(to, message);
+        if (!result.success) {
+            console.error(`[${context}] SMS failed:`, result.error);
+        }
+        return result;
+    } catch (err) {
+        console.error(`[${context}] SMS error:`, err.message);
+        return { success: false, error: err.message };
+    }
+}
+
 function resolveTimezone(lat, lng) {
     const latN = Number(lat);
     const lngN = Number(lng);
@@ -125,6 +170,12 @@ app.post('/api/signup', async (req, res) => {
                 [userId, minutes, opinion]
             );
         }
+
+        await sendOptionalSMS(
+            phone,
+            buildWelcomeMessage(first_name, minutesList, location_label),
+            'signup'
+        );
 
         res.json({ success: true, userId });
     } catch (err) {
@@ -246,6 +297,19 @@ app.put('/api/preferences/:userId', async (req, res) => {
                 `INSERT INTO user_preferences (user_id, alert_minutes_before, zmanim_opinion)
                  VALUES ($1, $2, $3)`,
                 [userId, minutes, zmanim_opinion || 'gra']
+            );
+        }
+
+        const userResult = await pool.query(
+            `SELECT name, phone FROM users WHERE id = $1`,
+            [userId]
+        );
+        if (userResult.rows.length > 0) {
+            const user = userResult.rows[0];
+            await sendOptionalSMS(
+                user.phone,
+                buildSettingsUpdatedMessage(user.name, minutesList, location_label),
+                'preferences'
             );
         }
 

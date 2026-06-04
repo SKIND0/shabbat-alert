@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './AlertPreferences.css';
+import { useNavigate, Link } from 'react-router-dom';
 import './SignupForm.css';
 import { loadApiConfig, getApiUrl } from './api';
 import LocationPicker from './LocationPicker';
@@ -18,6 +17,7 @@ function AlertPreferences() {
         location_label: ''
     });
     const [loading, setLoading] = useState(false);
+    const [saved, setSaved] = useState(false);
 
     const handleLookup = async () => {
         if (!phone.trim()) {
@@ -25,6 +25,7 @@ function AlertPreferences() {
             return;
         }
         setLoading(true);
+        setSaved(false);
         try {
             await loadApiConfig();
             const res = await fetch(`${getApiUrl()}/api/manage/lookup`, {
@@ -54,6 +55,7 @@ function AlertPreferences() {
 
     const handleLocationChange = (loc) => {
         setPrefs((prev) => ({ ...prev, ...loc }));
+        setSaved(false);
     };
 
     const handleSavePrefs = async () => {
@@ -62,6 +64,7 @@ function AlertPreferences() {
             return;
         }
         setLoading(true);
+        setSaved(false);
         try {
             await loadApiConfig();
             const res = await fetch(`${getApiUrl()}/api/preferences/${userId}`, {
@@ -71,7 +74,7 @@ function AlertPreferences() {
             });
             const data = await res.json();
             if (data.success) {
-                alert('Preferences saved! Your next Shabbat texts will use this location.');
+                setSaved(true);
             } else {
                 alert('Error: ' + data.error);
             }
@@ -82,138 +85,156 @@ function AlertPreferences() {
     };
 
     return (
-        <div className="page-wrapper">
-            <button type="button" className="btn-back" onClick={() => navigate('/')}>
-                ← Back to home
-            </button>
-            <div className="brand-header">
-                <h1>Shabbat Alert</h1>
-                <div className="candle-divider">
-                    <div className="line"></div>
-                    <div className="dot"></div>
-                    <div className="line right"></div>
+        <div className="site-page">
+            <div className="site-inner">
+                <button type="button" className="btn-back" onClick={() => navigate('/')}>
+                    ← Back to home
+                </button>
+                <div className="brand-header">
+                    <h1>Shabbat Alert</h1>
+                    <div className="candle-divider">
+                        <div className="line"></div>
+                        <div className="dot"></div>
+                        <div className="line right"></div>
+                    </div>
+                    <p className="tagline">Manage your preferences</p>
                 </div>
-                <p className="tagline">Manage your preferences</p>
-            </div>
 
-            <div className="signup-card">
-                {step === 'phone' && (
-                    <>
-                        <h2>Find your account</h2>
-                        <p className="card-subtitle">Enter the phone number you signed up with</p>
-                        <div className="form-group">
-                            <label>Phone number</label>
-                            <input
-                                type="tel"
-                                placeholder="+1 (212) 555-0100"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                            />
-                        </div>
-                        <div className="divider" />
-                        <button
-                            type="button"
-                            className="btn-submit"
-                            onClick={handleLookup}
-                            disabled={loading}
-                        >
-                            {loading ? 'Looking up…' : 'Continue'}
-                        </button>
-                    </>
-                )}
-
-                {step === 'preferences' && (
-                    <>
-                        <h2>Your preferences</h2>
-                        <p className="card-subtitle">
-                            Update your city when traveling — Friday texts will use this location
-                        </p>
-
-                        <div className="form-group">
-                            <label>Zmanim opinion</label>
-                            <div className="select-wrapper">
-                                <select
-                                    value={prefs.zmanim_opinion}
-                                    onChange={(e) => setPrefs({ ...prefs, zmanim_opinion: e.target.value })}
-                                >
-                                    <option value="gra">Gra (Vilna Gaon)</option>
-                                    <option value="ma">Magen Avraham</option>
-                                    <option value="rt">Rabbeinu Tam</option>
-                                </select>
+                <div className="form-panel">
+                    {step === 'phone' && (
+                        <>
+                            <h2>Find your account</h2>
+                            <p className="card-subtitle">Enter the phone number you signed up with</p>
+                            <div className="form-group">
+                                <label htmlFor="lookup_phone">Phone number</label>
+                                <input
+                                    id="lookup_phone"
+                                    type="tel"
+                                    placeholder="+1 (212) 555-0100"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                />
                             </div>
-                        </div>
+                            <div className="divider" />
+                            <button
+                                type="button"
+                                className="btn-submit"
+                                onClick={handleLookup}
+                                disabled={loading}
+                            >
+                                {loading ? 'Looking up…' : 'Continue'}
+                            </button>
+                        </>
+                    )}
 
-                        <div className="form-group">
-                            <label>Alert timing</label>
-                            <div className="alert-inputs">
-                                {prefs.alert_preferences.map((alert, index) => (
-                                    <div className="alert-row" key={index}>
-                                        <input
-                                            type="number"
-                                            value={alert}
-                                            onChange={(e) => {
-                                                const updated = [...prefs.alert_preferences];
-                                                updated[index] = parseInt(e.target.value, 10);
-                                                setPrefs({ ...prefs, alert_preferences: updated });
-                                            }}
-                                        />
-                                        <span className="unit-label">minutes before</span>
-                                        {prefs.alert_preferences.length > 1 && (
-                                            <button
-                                                type="button"
-                                                className="link remove"
-                                                onClick={() => {
-                                                    const updated = prefs.alert_preferences.filter((_, i) => i !== index);
+                    {step === 'preferences' && (
+                        <>
+                            <h2>Your preferences</h2>
+                            <p className="card-subtitle">
+                                Update your city when traveling — Friday texts will use this location
+                            </p>
+
+                            {saved && (
+                                <div className="save-success" role="status">
+                                    Preferences saved! You should get a confirmation text shortly.
+                                    Your next Shabbat reminders will use these settings.
+                                </div>
+                            )}
+
+                            <div className="form-group">
+                                <label>Location</label>
+                                <LocationPicker
+                                    location={{
+                                        lat: prefs.location_lat,
+                                        lng: prefs.location_lng,
+                                        label: prefs.location_label,
+                                    }}
+                                    onChange={handleLocationChange}
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>When to text you</label>
+                                <div className="hebcal-note">
+                                    <p>
+                                        Times from{' '}
+                                        <a href="https://www.hebcal.com" target="_blank" rel="noopener noreferrer">
+                                            Hebcal
+                                        </a>{' '}
+                                        for your city. Shabbat begins at candle lighting — often about{' '}
+                                        <strong>18 minutes before sunset</strong>.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Alert timing</label>
+                                <div className="alert-inputs">
+                                    {prefs.alert_preferences.map((alert, index) => (
+                                        <div className="alert-row" key={index}>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="180"
+                                                value={alert}
+                                                onChange={(e) => {
+                                                    const updated = [...prefs.alert_preferences];
+                                                    updated[index] = parseInt(e.target.value, 10);
                                                     setPrefs({ ...prefs, alert_preferences: updated });
+                                                    setSaved(false);
                                                 }}
-                                            >
-                                                remove
-                                            </button>
-                                        )}
-                                    </div>
-                                ))}
-                                {prefs.alert_preferences.length < 3 && (
-                                    <button
-                                        type="button"
-                                        className="btn-add-alert"
-                                        onClick={() =>
-                                            setPrefs({ ...prefs, alert_preferences: [...prefs.alert_preferences, 18] })
-                                        }
-                                    >
-                                        + Add another alert
-                                    </button>
-                                )}
+                                            />
+                                            <span className="unit-label">minutes before candle lighting</span>
+                                            {prefs.alert_preferences.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    className="link remove"
+                                                    onClick={() => {
+                                                        const updated = prefs.alert_preferences.filter((_, i) => i !== index);
+                                                        setPrefs({ ...prefs, alert_preferences: updated });
+                                                        setSaved(false);
+                                                    }}
+                                                >
+                                                    remove
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                    {prefs.alert_preferences.length < 3 && (
+                                        <button
+                                            type="button"
+                                            className="btn-add-alert"
+                                            onClick={() => {
+                                                setPrefs({
+                                                    ...prefs,
+                                                    alert_preferences: [...prefs.alert_preferences, 18]
+                                                });
+                                                setSaved(false);
+                                            }}
+                                        >
+                                            + Add another alert
+                                        </button>
+                                    )}
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="form-group">
-                            <label>Location</label>
-                            <LocationPicker
-                                location={{
-                                    lat: prefs.location_lat,
-                                    lng: prefs.location_lng,
-                                    label: prefs.location_label,
-                                }}
-                                onChange={handleLocationChange}
-                            />
-                        </div>
+                            <div className="divider" />
+                            <button
+                                type="button"
+                                className="btn-submit"
+                                onClick={handleSavePrefs}
+                                disabled={loading}
+                            >
+                                {loading ? 'Saving…' : 'Save preferences'}
+                            </button>
+                        </>
+                    )}
+                </div>
 
-                        <div className="divider" />
-                        <button
-                            type="button"
-                            className="btn-submit"
-                            onClick={handleSavePrefs}
-                            disabled={loading}
-                        >
-                            {loading ? 'Saving…' : 'Save preferences'}
-                        </button>
-                    </>
-                )}
+                <p className="footer-note">
+                    Reply STOP to any text to unsubscribe at any time
+                </p>
             </div>
-
-            <p className="footer-note">
-                Reply STOP to any text to unsubscribe at any time
-            </p>
         </div>
     );
 }

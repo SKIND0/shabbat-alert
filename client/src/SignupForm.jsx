@@ -92,13 +92,14 @@ function SignupForm() {
     };
 
     return (
-        <form className="signup-card" onSubmit={handleSubmit}>
+        <form className="form-panel" onSubmit={handleSubmit}>
             <h2>Create your alert</h2>
             <p className="card-subtitle">One-time setup · takes under a minute</p>
 
             <div className="form-group">
-                <label>First name</label>
+                <label htmlFor="first_name">First name</label>
                 <input
+                    id="first_name"
                     name="first_name"
                     placeholder="First name"
                     value={formData.first_name}
@@ -108,8 +109,9 @@ function SignupForm() {
             </div>
 
             <div className="form-group">
-                <label>Phone number</label>
+                <label htmlFor="phone_number">Phone number</label>
                 <input
+                    id="phone_number"
                     name="phone_number"
                     type="tel"
                     placeholder="+1 (212) 555-0100"
@@ -120,17 +122,29 @@ function SignupForm() {
             </div>
 
             <div className="form-group">
-                <label>Zmanim opinion</label>
-                <div className="select-wrapper">
-                    <select
-                        name="zmanim_opinion"
-                        value={formData.zmanim_opinion}
-                        onChange={handleChange}
-                    >
-                        <option value="gra">Gra (Vilna Gaon)</option>
-                        <option value="ma">Magen Avraham</option>
-                        <option value="rt">Rabbeinu Tam</option>
-                    </select>
+                <label>Location</label>
+                <LocationPicker
+                    location={{
+                        lat: formData.location_lat,
+                        lng: formData.location_lng,
+                        label: formData.location_label,
+                    }}
+                    onChange={handleLocationChange}
+                />
+            </div>
+
+            <div className="form-group">
+                <label>When to text you</label>
+                <div className="hebcal-note">
+                    <p>
+                        <strong>Candle-lighting times</strong> come from{' '}
+                        <a href="https://www.hebcal.com" target="_blank" rel="noopener noreferrer">
+                            Hebcal
+                        </a>{' '}
+                        based on your city. Shabbat begins at candle lighting — often about{' '}
+                        <strong>18 minutes before sunset</strong>. Choose how many minutes{' '}
+                        <em>before candle lighting</em> you want your reminder.
+                    </p>
                 </div>
             </div>
 
@@ -141,14 +155,17 @@ function SignupForm() {
                         <div className="alert-row" key={index}>
                             <input
                                 type="number"
+                                min="1"
+                                max="180"
                                 value={alert}
+                                aria-label={`Alert ${index + 1} minutes before candle lighting`}
                                 onChange={(e) => {
                                     const updated = [...formData.alert_preferences];
                                     updated[index] = parseInt(e.target.value, 10);
                                     setFormData({ ...formData, alert_preferences: updated });
                                 }}
                             />
-                            <span className="unit-label">minutes before</span>
+                            <span className="unit-label">minutes before candle lighting</span>
                         </div>
                     ))}
                     {formData.alert_preferences.length < 3 && (
@@ -164,18 +181,6 @@ function SignupForm() {
                         </button>
                     )}
                 </div>
-            </div>
-
-            <div className="form-group">
-                <label>Location</label>
-                <LocationPicker
-                    location={{
-                        lat: formData.location_lat,
-                        lng: formData.location_lng,
-                        label: formData.location_label,
-                    }}
-                    onChange={handleLocationChange}
-                />
             </div>
 
             {duplicatePhone && (
@@ -197,10 +202,11 @@ function SignupForm() {
                         onChange={(e) => setConsented(e.target.checked)}
                     />
                     <span>
-                        I agree to receive SMS alerts. Message and data rates may apply.
-                        Reply STOP to unsubscribe. See our{' '}
-                        <Link to="/privacy">Privacy Policy</Link> and{' '}
-                        <Link to="/terms">Terms</Link>.
+                        I agree to receive recurring SMS messages from Shabbat Alert with
+                        Shabbat and holiday candle-lighting reminders (typically weekly plus
+                        holidays). Message and data rates may apply. Reply STOP to unsubscribe.
+                        Privacy Policy: https://shabbat-alert-production.up.railway.app/privacy
+                        · Terms: https://shabbat-alert-production.up.railway.app/terms
                     </span>
                 </label>
             </div>
