@@ -12,8 +12,8 @@
     --white: #ffffff;
     --error: #e07070;
     --success: #8bc49a;
-    --content-max: 42rem;
-    --page-pad: clamp(1.25rem, 4vw, 3rem);
+    --content-max: 38rem;
+    --page-pad: clamp(1.25rem, 3vw, 2rem);
 }
 
 * {
@@ -54,146 +54,53 @@ body {
     justify-content: center;
 }
 
-.site-page--fit {
-    height: 100dvh;
-    max-height: 100dvh;
-    overflow: hidden;
+.page-header {
+    width: 100%;
+    max-width: var(--content-max);
+    margin: 0 auto 1rem;
 }
 
-.site-inner--fit {
-    min-height: 0;
-    height: 100%;
-    max-height: 100dvh;
-    padding: clamp(0.75rem, 2vh, 1.25rem) clamp(1rem, 3vw, 1.5rem);
-    overflow: hidden;
+.page-nav-link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--gold-dim);
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    padding: 0.35rem 0;
+    transition: color 0.2s;
 }
 
-.site-inner--fit.site-inner--center {
-    justify-content: center;
+.page-nav-link:hover {
+    color: var(--gold-light);
 }
 
 .signup-page {
-    justify-content: flex-start;
-    gap: 0.35rem;
+    padding-top: clamp(1rem, 3vh, 2rem);
+    padding-bottom: clamp(1.5rem, 4vh, 2.5rem);
 }
 
-.signup-top {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    width: 100%;
-    max-width: var(--content-max);
-    margin: 0 auto 0.35rem;
-    flex-shrink: 0;
+.signup-hero {
+    text-align: center;
+    margin-bottom: 1.75rem;
 }
 
-.signup-top .btn-back {
-    margin-bottom: 0;
-}
-
-.signup-top-title {
+.signup-title {
     font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(1.35rem, 3.5vw, 1.75rem);
+    font-size: clamp(2.25rem, 6vw, 3.25rem);
+    font-weight: 600;
     color: var(--gold-light);
     letter-spacing: 0.04em;
-    margin: 0;
+    line-height: 1.1;
 }
 
-.form-panel--compact {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    scrollbar-width: thin;
-}
-
-.form-panel--compact h2 {
-    font-size: clamp(1.35rem, 3vw, 1.65rem);
-    margin-bottom: 0.65rem;
-    flex-shrink: 0;
-}
-
-.form-panel--compact .form-group {
-    margin-bottom: clamp(0.65rem, 1.5vh, 0.9rem);
-    flex-shrink: 0;
-}
-
-.form-panel--compact .form-group label {
-    margin-bottom: 0.35rem;
-    font-size: 0.75rem;
-}
-
-.form-panel--compact .form-group input {
-    padding: 0.65rem 0.85rem;
-    font-size: 1rem;
-}
-
-.form-row-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-}
-
-@media (max-width: 360px) {
-    .form-row-2 {
-        grid-template-columns: 1fr;
-        gap: 0;
-    }
-}
-
-.field-hint {
-    font-size: 0.85rem;
-    color: var(--cream-dim);
+.signup-tagline {
+    font-size: 0.95rem;
     font-weight: 300;
-    line-height: 1.45;
-    margin: -0.25rem 0 0.5rem;
-}
-
-.field-hint a {
-    color: var(--gold-light);
-}
-
-.form-panel--compact .location-hint {
-    font-size: 0.8rem;
-    margin-bottom: 0.15rem;
-}
-
-.form-panel--compact .btn-gps {
-    padding: 0.65rem 0.85rem;
-    font-size: 0.85rem;
-}
-
-.form-panel--compact .btn-add-alert {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8rem;
-}
-
-.form-panel--compact .btn-submit {
-    padding: 0.75rem 1rem;
-    font-size: 1.15rem;
-    flex-shrink: 0;
-}
-
-.divider--compact {
-    margin: 0.65rem 0;
-}
-
-.consent-group--compact {
-    margin-bottom: 0.65rem;
-}
-
-.consent-group--compact .consent-label {
-    font-size: 0.78rem;
-    line-height: 1.45;
-    gap: 0.65rem;
-}
-
-.footer-note--compact {
-    padding-top: 0.35rem;
-    margin-top: 0;
-    font-size: 0.75rem;
-    flex-shrink: 0;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--cream-dim);
+    margin-top: 0.65rem;
 }
 
 .brand-header {
@@ -270,7 +177,7 @@ body {
 }
 
 .form-group {
-    margin-bottom: 1.75rem;
+    margin-bottom: 1.35rem;
 }
 
 .form-group label {
