@@ -2,6 +2,7 @@ const cron = require('node-cron');
 const pool = require('./db');
 const { sendSMS } = require('./twilio');
 const { fetchAndCacheShabbatTimes } = require('./hebcal');
+const { sanitizeAlertMinutes, MIN_ALERT_MINUTES, MAX_ALERT_MINUTES } = require('./alertLimits');
 
 function firstName(fullName) {
     const trimmed = (fullName || '').trim();
@@ -15,6 +16,21 @@ function formatLocalTime(utcValue, timezone) {
         minute: '2-digit',
         hour12: true,
     }).format(new Date(utcValue));
+}
+
+function getLocalHourAndWeekday(timezone, date = new Date()) {
+    const weekday = new Intl.DateTimeFormat('en-US', {
+        timeZone: timezone,
+        weekday: 'short',
+    }).format(date);
+    const hour = Number(
+        new Intl.DateTimeFormat('en-US', {
+            timeZone: timezone,
+            hour: 'numeric',
+            hour12: false,
+        }).format(date)
+    );
+    return { weekday, hour, isFriday: weekday === 'Fri' };
 }
 
 function buildShabbatMessage(name, candleLightingUtc, sunsetUtc, timezone) {
@@ -55,69 +71,135 @@ async function getActiveUsersWithPreferences() {
     return rows;
 }
 
-/**
- * Runs on Fridays: fetch/cache candle times and queue pending rows in alert_log.
- */
-async function planShabbatAlerts() {
-    console.log('[scheduler] Planning Shabbat alerts...');
-    const users = await getActiveUsersWithPreferences();
+async function getUserForPlanning(userId) {
+    const { rows } = await pool.query(
+        `
+        SELECT
+            u.id AS user_id,
+            u.name,
+            u.phone,
+            ul.id AS location_id,
+            ul.label AS location_label,
+            ul.latitude,
+            ul.longitude,
+            ul.timezone,
+            COALESCE(
+                array_agg(up.alert_minutes_before ORDER BY up.alert_minutes_before DESC)
+                    FILTER (WHERE up.alert_minutes_before IS NOT NULL),
+                ARRAY[18]
+            ) AS alert_minutes
+        FROM users u
+        INNER JOIN user_locations ul
+            ON ul.user_id = u.id AND ul.is_primary = TRUE
+        LEFT JOIN user_preferences up ON up.user_id = u.id
+        WHERE u.is_active = TRUE AND u.id = $1
+        GROUP BY u.id, u.name, u.phone, ul.id, ul.label, ul.latitude, ul.longitude, ul.timezone
+        `,
+        [userId]
+    );
+    return rows[0] || null;
+}
+
+async function planAlertsForUserRecord(user) {
+    const times = await fetchAndCacheShabbatTimes(
+        user.location_id,
+        user.latitude,
+        user.longitude,
+        user.timezone,
+        user.location_label
+    );
+
+    const candleUtc = new Date(times.candle_lighting_utc);
+    const now = new Date();
+    const minutesList = sanitizeAlertMinutes(user.alert_minutes);
     let planned = 0;
 
-    for (const user of users) {
-        try {
-            const times = await fetchAndCacheShabbatTimes(
-                user.location_id,
-                user.latitude,
-                user.longitude,
-                user.timezone,
-                user.location_label
+    for (const minutes of minutesList) {
+        const scheduledFor = new Date(candleUtc.getTime() - minutes * 60 * 1000);
+
+        if (scheduledFor <= now) {
+            console.log(
+                `[scheduler] Skipping past alert for user ${user.user_id} (${minutes} min before)`
             );
-
-            const candleUtc = new Date(times.candle_lighting_utc);
-            const minutesList = [...new Set(user.alert_minutes.map(Number))];
-
-            for (const minutes of minutesList) {
-                const scheduledFor = new Date(candleUtc.getTime() - minutes * 60 * 1000);
-
-                if (scheduledFor <= new Date()) {
-                    console.log(
-                        `[scheduler] Skipping past alert for user ${user.user_id} (${minutes} min before)`
-                    );
-                    continue;
-                }
-
-                const existing = await pool.query(
-                    `SELECT id FROM alert_log
-                     WHERE user_id = $1
-                       AND shabbos_time_id = $2
-                       AND alert_type = 'candle_lighting'
-                       AND scheduled_for = $3`,
-                    [user.user_id, times.id, scheduledFor]
-                );
-
-                if (existing.rows.length > 0) {
-                    continue;
-                }
-
-                await pool.query(
-                    `INSERT INTO alert_log
-                        (user_id, shabbos_time_id, alert_type, scheduled_for, status)
-                     VALUES ($1, $2, 'candle_lighting', $3, 'pending')`,
-                    [user.user_id, times.id, scheduledFor]
-                );
-                planned++;
-            }
-        } catch (err) {
-            console.error(`[scheduler] Failed to plan for user ${user.user_id}:`, err.message);
+            continue;
         }
+
+        const existing = await pool.query(
+            `SELECT id FROM alert_log
+             WHERE user_id = $1
+               AND shabbos_time_id = $2
+               AND alert_type = 'candle_lighting'
+               AND scheduled_for = $3`,
+            [user.user_id, times.id, scheduledFor]
+        );
+
+        if (existing.rows.length > 0) {
+            continue;
+        }
+
+        await pool.query(
+            `INSERT INTO alert_log
+                (user_id, shabbos_time_id, alert_type, scheduled_for, status)
+             VALUES ($1, $2, 'candle_lighting', $3, 'pending')`,
+            [user.user_id, times.id, scheduledFor]
+        );
+        planned++;
     }
 
-    console.log(`[scheduler] Planned ${planned} alert(s) for ${users.length} active user(s)`);
     return planned;
 }
 
 /**
- * Sends any pending alerts whose scheduled_for time has passed.
+ * Plan this week's alerts for one user (signup, prefs change, or Friday 8 AM local).
+ */
+async function planAlertsForUser(userId) {
+    const user = await getUserForPlanning(userId);
+    if (!user) {
+        return 0;
+    }
+    try {
+        const planned = await planAlertsForUserRecord(user);
+        if (planned > 0) {
+            console.log(`[scheduler] Planned ${planned} alert(s) for user ${userId}`);
+        }
+        return planned;
+    } catch (err) {
+        console.error(`[scheduler] Failed to plan for user ${userId}:`, err.message);
+        return 0;
+    }
+}
+
+/**
+ * Each hour: users whose local time is Friday 8:00–8:59 AM get this week's alerts queued.
+ */
+async function runHourlyFridayPlanning() {
+    const users = await getActiveUsersWithPreferences();
+    let planned = 0;
+
+    for (const user of users) {
+        const { isFriday, hour } = getLocalHourAndWeekday(user.timezone);
+        if (!isFriday || hour !== 8) {
+            continue;
+        }
+        try {
+            planned += await planAlertsForUserRecord(user);
+        } catch (err) {
+            console.error(`[scheduler] Friday planning failed for ${user.user_id}:`, err.message);
+        }
+    }
+
+    if (planned > 0) {
+        console.log(`[scheduler] Hourly Friday planning queued ${planned} alert(s)`);
+    }
+    return planned;
+}
+
+async function planShabbatAlerts() {
+    return runHourlyFridayPlanning();
+}
+
+/**
+ * Sends pending alerts whose scheduled_for time has passed.
  */
 async function sendDueAlerts() {
     const { rows } = await pool.query(`
@@ -135,6 +217,7 @@ async function sendDueAlerts() {
         WHERE al.status = 'pending'
           AND al.alert_type = 'candle_lighting'
           AND al.scheduled_for <= NOW()
+          AND st.candle_lighting_utc > NOW()
     `);
 
     for (const alert of rows) {
@@ -170,30 +253,32 @@ async function sendDueAlerts() {
 }
 
 function initScheduler() {
-    // Friday 8:00 AM — queue this week's alerts (America/New_York)
-    cron.schedule(
-        '0 8 * * 5',
-        () => {
-            planShabbatAlerts().catch((err) => {
-                console.error('[scheduler] Friday planning failed:', err);
-            });
-        },
-        { timezone: 'America/New_York' }
-    );
+    // Every hour — plan for users where it's Friday 8 AM in their timezone
+    cron.schedule('0 * * * *', () => {
+        runHourlyFridayPlanning().catch((err) => {
+            console.error('[scheduler] Hourly Friday planning failed:', err);
+        });
+    });
 
-    // Every minute — deliver alerts when scheduled_for is reached
-    cron.schedule('* * * * *', () => {
+    // Friday & Saturday UTC — send queued texts until candle-lighting passes
+    cron.schedule('* * * * 5,6', () => {
         sendDueAlerts().catch((err) => {
             console.error('[scheduler] Send due alerts failed:', err);
         });
     });
 
-    console.log('[scheduler] Registered: Friday 8 AM planning, every-minute send');
+    console.log(
+        '[scheduler] Registered: hourly Friday-8AM-local planning, Fri/Sat send window'
+    );
 }
 
 module.exports = {
     initScheduler,
     planShabbatAlerts,
+    planAlertsForUser,
+    runHourlyFridayPlanning,
     sendDueAlerts,
     buildShabbatMessage,
+    MIN_ALERT_MINUTES,
+    MAX_ALERT_MINUTES,
 };

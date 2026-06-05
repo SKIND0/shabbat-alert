@@ -18,7 +18,9 @@ app.use(express.urlencoded({ extended: false }));
 //});
 
 const { sendSMS } = require('./twilio');
-const { buildShabbatMessage } = require('./scheduler');
+const { buildShabbatMessage, planAlertsForUser } = require('./scheduler');
+const { sanitizeAlertMinutes, MAX_ALERT_MINUTES } = require('./alertLimits');
+const { fetchAndCacheShabbatTimes, seedPresetLocations } = require('./hebcal');
 
 app.get('/test-sms', async (req, res) => {
     if (!req.query.to) {
@@ -158,13 +160,12 @@ app.post('/api/signup', async (req, res) => {
             [userId, location_label, location_lat, location_lng, timezone]
         );
 
-        const minutesList = (Array.isArray(alert_preferences) ? alert_preferences : [18])
-            .slice(0, 3)
-            .map((m) => parseInt(m, 10))
-            .filter((m) => !Number.isNaN(m) && m > 0);
+        const minutesList = sanitizeAlertMinutes(alert_preferences);
 
         if (minutesList.length === 0) {
-            return res.status(400).json({ error: 'At least one valid alert preference is required' });
+            return res.status(400).json({
+                error: `Alert timing must be between 1 and ${MAX_ALERT_MINUTES} minutes before candle lighting`,
+            });
         }
 
         for (const minutes of minutesList) {
@@ -179,6 +180,10 @@ app.post('/api/signup', async (req, res) => {
             buildWelcomeMessage(first_name, minutesList, location_label),
             'signup'
         );
+
+        planAlertsForUser(userId).catch((err) => {
+            console.error('[signup] Could not plan alerts:', err.message);
+        });
 
         res.json({ success: true, userId });
     } catch (err) {
@@ -213,7 +218,6 @@ app.post('/api/webhook/stop', async (req, res) => {
         res.status(500).send('Error');
     }
 });
-const { fetchAndCacheShabbatTimes, seedPresetLocations } = require('./hebcal');
 
 app.post('/api/manage/lookup', async (req, res) => {
     const { phone_number } = req.body;
@@ -273,13 +277,12 @@ app.put('/api/preferences/:userId', async (req, res) => {
         return res.status(400).json({ error: 'A verified location is required' });
     }
 
-    const minutesList = (Array.isArray(alert_preferences) ? alert_preferences : [18])
-        .slice(0, 3)
-        .map((m) => parseInt(m, 10))
-        .filter((m) => !Number.isNaN(m) && m > 0);
+    const minutesList = sanitizeAlertMinutes(alert_preferences);
 
     if (minutesList.length === 0) {
-        return res.status(400).json({ error: 'At least one valid alert preference is required' });
+        return res.status(400).json({
+            error: `Alert timing must be between 1 and ${MAX_ALERT_MINUTES} minutes before candle lighting`,
+        });
     }
 
     try {
@@ -326,6 +329,10 @@ app.put('/api/preferences/:userId', async (req, res) => {
                 'preferences'
             );
         }
+
+        planAlertsForUser(userId).catch((err) => {
+            console.error('[preferences] Could not plan alerts:', err.message);
+        });
 
         res.json({ success: true });
     } catch (err) {

@@ -4,6 +4,8 @@ import './SignupForm.css';
 import { loadApiConfig, getApiUrl } from './api';
 import LocationPicker from './LocationPicker';
 
+const MAX_ALERT_MINUTES = 720;
+
 function SignupForm() {
     const [formData, setFormData] = useState({
         first_name: '',
@@ -92,34 +94,30 @@ function SignupForm() {
     };
 
     return (
-        <form className="form-panel form-panel--compact" onSubmit={handleSubmit}>
-            <h2>Create your alert</h2>
+        <form className="form-panel" onSubmit={handleSubmit}>
+            <div className="form-group">
+                <label htmlFor="first_name">First name</label>
+                <input
+                    id="first_name"
+                    name="first_name"
+                    placeholder="First name"
+                    value={formData.first_name}
+                    onChange={handleChange}
+                    autoComplete="given-name"
+                />
+            </div>
 
-            <div className="form-row-2">
-                <div className="form-group">
-                    <label htmlFor="first_name">First name</label>
-                    <input
-                        id="first_name"
-                        name="first_name"
-                        placeholder="First name"
-                        value={formData.first_name}
-                        onChange={handleChange}
-                        autoComplete="given-name"
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="phone_number">Phone number</label>
-                    <input
-                        id="phone_number"
-                        name="phone_number"
-                        type="tel"
-                        placeholder="+1 (212) 555-0100"
-                        value={formData.phone_number}
-                        onChange={handleChange}
-                        autoComplete="tel"
-                    />
-                </div>
+            <div className="form-group">
+                <label htmlFor="phone_number">Phone number</label>
+                <input
+                    id="phone_number"
+                    name="phone_number"
+                    type="tel"
+                    placeholder="+1 (212) 555-0100"
+                    value={formData.phone_number}
+                    onChange={handleChange}
+                    autoComplete="tel"
+                />
             </div>
 
             <div className="form-group">
@@ -136,20 +134,23 @@ function SignupForm() {
 
             <div className="form-group">
                 <label>Alert timing</label>
-                <p className="field-hint">
-                    Times from{' '}
-                    <a href="https://www.hebcal.com" target="_blank" rel="noopener noreferrer">
-                        Hebcal
-                    </a>
-                    . Text me this many minutes before candle lighting:
-                </p>
+                <div className="hebcal-note">
+                    <p>
+                        Times from{' '}
+                        <a href="https://www.hebcal.com" target="_blank" rel="noopener noreferrer">
+                            Hebcal
+                        </a>{' '}
+                        for your city. Choose how many minutes before candle lighting to text you
+                        (1–{MAX_ALERT_MINUTES}, up to 12 hours).
+                    </p>
+                </div>
                 <div className="alert-inputs">
                     {formData.alert_preferences.map((alert, index) => (
                         <div className="alert-row" key={index}>
                             <input
                                 type="number"
                                 min="1"
-                                max="180"
+                                max={MAX_ALERT_MINUTES}
                                 value={alert}
                                 aria-label={`Alert ${index + 1} minutes before candle lighting`}
                                 onChange={(e) => {
@@ -158,7 +159,7 @@ function SignupForm() {
                                     setFormData({ ...formData, alert_preferences: updated });
                                 }}
                             />
-                            <span className="unit-label">min before candles</span>
+                            <span className="unit-label">minutes before candle lighting</span>
                         </div>
                     ))}
                     {formData.alert_preferences.length < 3 && (
@@ -186,8 +187,8 @@ function SignupForm() {
                 </div>
             )}
 
-            <div className="divider divider--compact" />
-            <div className="consent-group consent-group--compact">
+            <div className="divider" />
+            <div className="consent-group">
                 <label className="consent-label">
                     <input
                         type="checkbox"
@@ -196,7 +197,7 @@ function SignupForm() {
                     />
                     <span>
                         I agree to receive weekly Shabbat SMS reminders from Shabbat Alert.
-                        Msg &amp; data rates may apply. Reply STOP to unsubscribe.{' '}
+                        Message and data rates may apply. Reply STOP to unsubscribe.{' '}
                         <Link to="/privacy">Privacy</Link> · <Link to="/terms">Terms</Link>.
                     </span>
                 </label>

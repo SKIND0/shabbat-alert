@@ -175,7 +175,7 @@ function AlertPreferences() {
                                             <input
                                                 type="number"
                                                 min="1"
-                                                max="180"
+                                                max="720"
                                                 value={alert}
                                                 onChange={(e) => {
                                                     const updated = [...prefs.alert_preferences];
