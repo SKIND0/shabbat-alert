@@ -92,33 +92,34 @@ function SignupForm() {
     };
 
     return (
-        <form className="form-panel" onSubmit={handleSubmit}>
+        <form className="form-panel form-panel--compact" onSubmit={handleSubmit}>
             <h2>Create your alert</h2>
-            <p className="card-subtitle">One-time setup · takes under a minute</p>
 
-            <div className="form-group">
-                <label htmlFor="first_name">First name</label>
-                <input
-                    id="first_name"
-                    name="first_name"
-                    placeholder="First name"
-                    value={formData.first_name}
-                    onChange={handleChange}
-                    autoComplete="given-name"
-                />
-            </div>
+            <div className="form-row-2">
+                <div className="form-group">
+                    <label htmlFor="first_name">First name</label>
+                    <input
+                        id="first_name"
+                        name="first_name"
+                        placeholder="First name"
+                        value={formData.first_name}
+                        onChange={handleChange}
+                        autoComplete="given-name"
+                    />
+                </div>
 
-            <div className="form-group">
-                <label htmlFor="phone_number">Phone number</label>
-                <input
-                    id="phone_number"
-                    name="phone_number"
-                    type="tel"
-                    placeholder="+1 (212) 555-0100"
-                    value={formData.phone_number}
-                    onChange={handleChange}
-                    autoComplete="tel"
-                />
+                <div className="form-group">
+                    <label htmlFor="phone_number">Phone number</label>
+                    <input
+                        id="phone_number"
+                        name="phone_number"
+                        type="tel"
+                        placeholder="+1 (212) 555-0100"
+                        value={formData.phone_number}
+                        onChange={handleChange}
+                        autoComplete="tel"
+                    />
+                </div>
             </div>
 
             <div className="form-group">
@@ -134,22 +135,14 @@ function SignupForm() {
             </div>
 
             <div className="form-group">
-                <label>When to text you</label>
-                <div className="hebcal-note">
-                    <p>
-                        <strong>Candle-lighting times</strong> come from{' '}
-                        <a href="https://www.hebcal.com" target="_blank" rel="noopener noreferrer">
-                            Hebcal
-                        </a>{' '}
-                        based on your city. Shabbat begins at candle lighting — often about{' '}
-                        <strong>18 minutes before sunset</strong>. Choose how many minutes{' '}
-                        <em>before candle lighting</em> you want your reminder.
-                    </p>
-                </div>
-            </div>
-
-            <div className="form-group">
                 <label>Alert timing</label>
+                <p className="field-hint">
+                    Times from{' '}
+                    <a href="https://www.hebcal.com" target="_blank" rel="noopener noreferrer">
+                        Hebcal
+                    </a>
+                    . Text me this many minutes before candle lighting:
+                </p>
                 <div className="alert-inputs">
                     {formData.alert_preferences.map((alert, index) => (
                         <div className="alert-row" key={index}>
@@ -165,7 +158,7 @@ function SignupForm() {
                                     setFormData({ ...formData, alert_preferences: updated });
                                 }}
                             />
-                            <span className="unit-label">minutes before candle lighting</span>
+                            <span className="unit-label">min before candles</span>
                         </div>
                     ))}
                     {formData.alert_preferences.length < 3 && (
@@ -193,8 +186,8 @@ function SignupForm() {
                 </div>
             )}
 
-            <div className="divider" />
-            <div className="consent-group">
+            <div className="divider divider--compact" />
+            <div className="consent-group consent-group--compact">
                 <label className="consent-label">
                     <input
                         type="checkbox"
@@ -202,11 +195,9 @@ function SignupForm() {
                         onChange={(e) => setConsented(e.target.checked)}
                     />
                     <span>
-                        I agree to receive recurring SMS messages from Shabbat Alert with
-                        weekly Shabbat candle-lighting reminders. Message and data rates may apply.
-                        Reply STOP to unsubscribe.
-                        Privacy Policy: https://shabbat-alert-production.up.railway.app/privacy
-                        · Terms: https://shabbat-alert-production.up.railway.app/terms
+                        I agree to receive weekly Shabbat SMS reminders from Shabbat Alert.
+                        Msg &amp; data rates may apply. Reply STOP to unsubscribe.{' '}
+                        <Link to="/privacy">Privacy</Link> · <Link to="/terms">Terms</Link>.
                     </span>
                 </label>
             </div>

@@ -6,25 +6,18 @@ function Signup() {
     const navigate = useNavigate();
 
     return (
-        <div className="site-page">
-            <div className="site-inner">
-                <button type="button" className="btn-back" onClick={() => navigate('/')}>
-                    ← Back to home
-                </button>
-                <div className="brand-header">
-                    <h1>Shabbat Alert</h1>
-                    <div className="candle-divider">
-                        <div className="line"></div>
-                        <div className="dot"></div>
-                        <div className="line right"></div>
-                    </div>
-                    <p className="tagline">Light candles on time, every week</p>
+        <div className="site-page site-page--fit">
+            <div className="site-inner site-inner--fit signup-page">
+                <div className="signup-top">
+                    <button type="button" className="btn-back" onClick={() => navigate('/')}>
+                        ← Back
+                    </button>
+                    <p className="signup-top-title">Shabbat Alert</p>
                 </div>
 
                 <SignupForm />
 
-                <p className="footer-note">
-                    By signing up you agree to receive recurring SMS from Shabbat Alert ·
+                <p className="footer-note footer-note--compact">
                     Reply STOP to unsubscribe ·{' '}
                     <Link to="/privacy">Privacy</Link> · <Link to="/terms">Terms</Link>
                 </p>

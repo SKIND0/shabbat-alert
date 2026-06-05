@@ -107,7 +107,7 @@ function LocationPicker({ location, onChange }) {
     return (
         <div className="location-picker" ref={wrapRef}>
             <p className="location-hint">
-                City and state only — e.g. Brooklyn, New York, United States. No street addresses.
+                City and state only — pick from the list or use Detect.
             </p>
             <div className="location-search-row">
                 <div className="location-input-wrap">

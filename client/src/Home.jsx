@@ -6,8 +6,8 @@ function Home() {
     const navigate = useNavigate();
 
     return (
-        <div className="site-page">
-            <div className="site-inner site-inner--center home-page">
+        <div className="site-page site-page--fit">
+            <div className="site-inner site-inner--fit site-inner--center home-page">
                 <div className="home-body">
                     <div className="home-hero">
                         <div className="candle-icon">🕯️</div>
@@ -22,19 +22,14 @@ function Home() {
 
                     <div className="home-explanation">
                         <p>
-                            Get a personalized SMS reminder before Shabbat candle lighting —
-                            based on your city and how early you want to be notified.
-                        </p>
-                        <p className="sms-disclosure">
-                            Shabbat Alert is an SMS-only service. By signing up you opt in to
-                            weekly Shabbat reminder texts. Message and data rates may apply.
-                            Reply STOP to unsubscribe.
+                            SMS reminders before Shabbat candle lighting — based on your city
+                            and how early you want to be notified.
                         </p>
                         <ul className="home-features">
-                            <li><span className="feature-dot">✦</span> One-time setup, under a minute</li>
-                            <li><span className="feature-dot">✦</span> Candle-lighting times from Hebcal</li>
-                            <li><span className="feature-dot">✦</span> Your name, your city, your timing</li>
-                            <li><span className="feature-dot">✦</span> Reply STOP to unsubscribe anytime</li>
+                            <li><span className="feature-dot">✦</span> One-time setup</li>
+                            <li><span className="feature-dot">✦</span> Times from Hebcal</li>
+                            <li><span className="feature-dot">✦</span> Your city, your timing</li>
+                            <li><span className="feature-dot">✦</span> Reply STOP anytime</li>
                         </ul>
                     </div>
 

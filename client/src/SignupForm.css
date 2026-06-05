@@ -54,6 +54,148 @@ body {
     justify-content: center;
 }
 
+.site-page--fit {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+}
+
+.site-inner--fit {
+    min-height: 0;
+    height: 100%;
+    max-height: 100dvh;
+    padding: clamp(0.75rem, 2vh, 1.25rem) clamp(1rem, 3vw, 1.5rem);
+    overflow: hidden;
+}
+
+.site-inner--fit.site-inner--center {
+    justify-content: center;
+}
+
+.signup-page {
+    justify-content: flex-start;
+    gap: 0.35rem;
+}
+
+.signup-top {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: var(--content-max);
+    margin: 0 auto 0.35rem;
+    flex-shrink: 0;
+}
+
+.signup-top .btn-back {
+    margin-bottom: 0;
+}
+
+.signup-top-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.35rem, 3.5vw, 1.75rem);
+    color: var(--gold-light);
+    letter-spacing: 0.04em;
+    margin: 0;
+}
+
+.form-panel--compact {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.form-panel--compact h2 {
+    font-size: clamp(1.35rem, 3vw, 1.65rem);
+    margin-bottom: 0.65rem;
+    flex-shrink: 0;
+}
+
+.form-panel--compact .form-group {
+    margin-bottom: clamp(0.65rem, 1.5vh, 0.9rem);
+    flex-shrink: 0;
+}
+
+.form-panel--compact .form-group label {
+    margin-bottom: 0.35rem;
+    font-size: 0.75rem;
+}
+
+.form-panel--compact .form-group input {
+    padding: 0.65rem 0.85rem;
+    font-size: 1rem;
+}
+
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+@media (max-width: 360px) {
+    .form-row-2 {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+}
+
+.field-hint {
+    font-size: 0.85rem;
+    color: var(--cream-dim);
+    font-weight: 300;
+    line-height: 1.45;
+    margin: -0.25rem 0 0.5rem;
+}
+
+.field-hint a {
+    color: var(--gold-light);
+}
+
+.form-panel--compact .location-hint {
+    font-size: 0.8rem;
+    margin-bottom: 0.15rem;
+}
+
+.form-panel--compact .btn-gps {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.85rem;
+}
+
+.form-panel--compact .btn-add-alert {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+}
+
+.form-panel--compact .btn-submit {
+    padding: 0.75rem 1rem;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+
+.divider--compact {
+    margin: 0.65rem 0;
+}
+
+.consent-group--compact {
+    margin-bottom: 0.65rem;
+}
+
+.consent-group--compact .consent-label {
+    font-size: 0.78rem;
+    line-height: 1.45;
+    gap: 0.65rem;
+}
+
+.footer-note--compact {
+    padding-top: 0.35rem;
+    margin-top: 0;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
 .brand-header {
     text-align: center;
     margin-bottom: clamp(2rem, 5vw, 3.5rem);
