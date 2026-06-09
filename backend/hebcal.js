@@ -218,8 +218,61 @@ async function seedPresetLocations() {
     }
 }
 
+async function fetchZmanimForDate(latitude, longitude, timezone, date) {
+    const url =
+        `https://www.hebcal.com/zmanim?cfg=json&latitude=${latitude}` +
+        `&longitude=${longitude}&tzid=${encodeURIComponent(timezone)}&date=${date}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Hebcal zmanim API failed (${response.status})`);
+    }
+    const data = await response.json();
+    const times = data.times || {};
+    const pick = (key) => (times[key] ? new Date(times[key]).toISOString() : null);
+    return {
+        plag_hamincha_utc: pick('plagHaMincha'),
+        mincha_ketana_utc: pick('minchaKetana'),
+        mincha_gedola_utc: pick('minchaGedola'),
+    };
+}
+
+async function fetchAndCacheShabbatTimesForPreview(latitude, longitude, timezone) {
+    const preset = findPreset(latitude, longitude, null);
+    const fresh = await fetchShabbatFromHebcal(latitude, longitude, timezone);
+    let shared = await getSharedCache(preset, latitude, longitude, fresh.parasha_date);
+
+    if (!shared) {
+        await saveSharedCache(preset, latitude, longitude, fresh);
+        shared = await getSharedCache(preset, latitude, longitude, fresh.parasha_date);
+    }
+
+    const base = shared
+        ? {
+            parasha_date: shared.parasha_date,
+            parasha_name: shared.parasha_name,
+            candle_lighting_utc: shared.candle_lighting_utc,
+            sunset_utc: shared.sunset_utc,
+            havdalah_utc: shared.havdalah_utc,
+        }
+        : fresh;
+
+    const zmanim = await fetchZmanimForDate(
+        latitude,
+        longitude,
+        timezone,
+        base.parasha_date
+    );
+
+    return {
+        ...base,
+        ...zmanim,
+        candles_minutes_before_sunset: CANDLE_MINUTES_BEFORE_SUNSET,
+    };
+}
+
 module.exports = {
     fetchAndCacheShabbatTimes,
+    fetchAndCacheShabbatTimesForPreview,
     fetchShabbatFromHebcal,
     seedPresetLocations,
     CANDLE_MINUTES_BEFORE_SUNSET,

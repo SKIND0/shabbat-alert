@@ -6,6 +6,7 @@ import AlertPreferences from './AlertPreferences';
 import SignupSuccess from './SignupSuccess';
 import Privacy from './Privacy';
 import Terms from './Terms';
+import Demo from './Demo';
 
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/signup/success" element={<SignupSuccess />} />
+                <Route path="/demo" element={<Demo />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/manage" element={<ManageAlerts />} />

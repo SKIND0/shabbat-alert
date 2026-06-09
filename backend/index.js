@@ -20,7 +20,11 @@ app.use(express.urlencoded({ extended: false }));
 const { sendSMS } = require('./twilio');
 const { buildShabbatMessage, planAlertsForUser } = require('./scheduler');
 const { sanitizeAlertMinutes, MAX_ALERT_MINUTES } = require('./alertLimits');
-const { fetchAndCacheShabbatTimes, seedPresetLocations } = require('./hebcal');
+const {
+    fetchAndCacheShabbatTimes,
+    fetchAndCacheShabbatTimesForPreview,
+    seedPresetLocations,
+} = require('./hebcal');
 
 app.get('/test-sms', async (req, res) => {
     if (!req.query.to) {
@@ -336,6 +340,28 @@ app.put('/api/preferences/:userId', async (req, res) => {
 
         res.json({ success: true });
     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/shabbat-preview', async (req, res) => {
+    const lat = Number(req.query.lat);
+    const lng = Number(req.query.lng);
+    if (Number.isNaN(lat) || Number.isNaN(lng)) {
+        return res.status(400).json({ error: 'lat and lng query parameters are required' });
+    }
+
+    const timezone = req.query.timezone || resolveTimezone(lat, lng);
+
+    try {
+        const times = await fetchAndCacheShabbatTimesForPreview(lat, lng, timezone);
+        res.json({
+            ...times,
+            timezone,
+            location_label: req.query.label || null,
+        });
+    } catch (err) {
+        console.error('Shabbat preview failed:', err.message);
         res.status(500).json({ error: err.message });
     }
 });

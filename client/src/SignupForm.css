@@ -13,6 +13,7 @@
     --error: #e07070;
     --success: #8bc49a;
     --content-max: 38rem;
+    --content-wide: 52rem;
     --page-pad: clamp(1.25rem, 3vw, 2rem);
 }
 
