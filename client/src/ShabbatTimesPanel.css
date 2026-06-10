@@ -40,6 +40,12 @@
     margin-top: 0.2rem;
 }
 
+.times-local {
+    color: var(--gold-dim);
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+}
+
 .times-parasha {
     text-align: right;
 }

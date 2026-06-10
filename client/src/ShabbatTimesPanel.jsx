@@ -92,7 +92,10 @@ function ShabbatTimesPanel({ initialLocation }) {
                     <div className="times-panel-head">
                         <div className="times-panel-meta">
                             <p className="times-city">{cityName}</p>
-                            <p className="times-date">{formatParashaDate(times.parasha_date, tz)}</p>
+                            <p className="times-date">
+                                {formatParashaDate(times.parasha_date, tz)}
+                                <span className="times-local"> · local time</span>
+                            </p>
                         </div>
                         {parashaLabel && (
                             <div className="times-parasha">

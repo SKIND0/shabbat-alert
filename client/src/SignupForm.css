@@ -339,7 +339,36 @@ body {
 
 .location-input-wrap input {
     width: 100%;
+    padding: 1rem 1.15rem;
     padding-right: 2.75rem;
+    background: var(--navy-mid);
+    border: 1px solid rgba(201, 168, 76, 0.2);
+    border-radius: 10px;
+    font-family: 'Jost', sans-serif;
+    font-size: 1.0625rem;
+    font-weight: 300;
+    color: var(--cream);
+    outline: none;
+    color-scheme: dark;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.location-input-wrap input::placeholder {
+    color: rgba(197, 191, 168, 0.4);
+}
+
+.location-input-wrap input:focus {
+    border-color: rgba(201, 168, 76, 0.55);
+    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.1);
+}
+
+.location-input-wrap input:-webkit-autofill,
+.location-input-wrap input:-webkit-autofill:hover,
+.location-input-wrap input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--navy-mid) inset;
+    -webkit-text-fill-color: var(--cream);
+    caret-color: var(--cream);
+    transition: background-color 99999s ease-in-out 0s;
 }
 
 .btn-location-search {
