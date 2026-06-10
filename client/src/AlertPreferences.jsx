@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import SiteNav from './SiteNav';
+import SiteFooter from './SiteFooter';
 import './SignupForm.css';
 import { loadApiConfig, getApiUrl } from './api';
 import LocationPicker from './LocationPicker';
 
 function AlertPreferences() {
-    const navigate = useNavigate();
     const [step, setStep] = useState('phone');
     const [phone, setPhone] = useState('');
     const [userId, setUserId] = useState(null);
@@ -86,12 +86,10 @@ function AlertPreferences() {
 
     return (
         <div className="site-page">
-            <div className="site-inner">
-                <button type="button" className="btn-back" onClick={() => navigate('/')}>
-                    ← Back to home
-                </button>
+            <div className="site-inner signup-page">
+                <SiteNav />
                 <div className="brand-header">
-                    <h1>Shabbat Alert</h1>
+                    <h1>Manage</h1>
                     <div className="candle-divider">
                         <div className="line"></div>
                         <div className="dot"></div>
@@ -231,9 +229,7 @@ function AlertPreferences() {
                     )}
                 </div>
 
-                <p className="footer-note">
-                    Reply STOP to any text to unsubscribe at any time
-                </p>
+                <SiteFooter />
             </div>
         </div>
     );

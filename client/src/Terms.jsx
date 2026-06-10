@@ -1,11 +1,12 @@
-import { Link } from 'react-router-dom';
+import SiteNav from './SiteNav';
+import SiteFooter from './SiteFooter';
 import './SignupForm.css';
 
 function Terms() {
     return (
         <div className="site-page">
-            <div className="site-inner">
-                <Link to="/" className="btn-back">← Back to home</Link>
+            <div className="site-inner signup-page">
+                <SiteNav />
                 <div className="form-panel legal-page">
                     <h2>Terms of Service</h2>
                     <p className="card-subtitle">Shabbat Alert · Last updated June 2026</p>
@@ -34,6 +35,7 @@ function Terms() {
                     <h3>No warranty</h3>
                     <p>This is a student practicum project. Use at your own discretion for religious timing.</p>
                 </div>
+                <SiteFooter />
             </div>
         </div>
     );

@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import SiteNav from './SiteNav';
+import SiteFooter from './SiteFooter';
 import SignupForm from './SignupForm';
 import './SignupForm.css';
 
@@ -6,12 +7,10 @@ function Signup() {
     return (
         <div className="site-page">
             <div className="site-inner signup-page">
-                <header className="page-header">
-                    <Link to="/" className="page-nav-link">← Back to home</Link>
-                </header>
+                <SiteNav />
 
                 <div className="signup-hero">
-                    <h1 className="signup-title">Shabbat Alert</h1>
+                    <h1 className="signup-title">Sign up</h1>
                     <div className="candle-divider">
                         <div className="line"></div>
                         <div className="dot"></div>
@@ -22,10 +21,7 @@ function Signup() {
 
                 <SignupForm />
 
-                <p className="footer-note">
-                    Reply STOP to unsubscribe ·{' '}
-                    <Link to="/privacy">Privacy</Link> · <Link to="/terms">Terms</Link>
-                </p>
+                <SiteFooter />
             </div>
         </div>
     );

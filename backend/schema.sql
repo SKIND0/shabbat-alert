@@ -60,7 +60,7 @@ CREATE TABLE user_preferences (
   zmanim_opinion      VARCHAR(10) NOT NULL DEFAULT 'gra'
                         CHECK (zmanim_opinion IN ('gra', 'ma', 'rt')),
 
-  -- Whether user also wants Havdalah reminder
+  -- Reserved for future alert types (candle lighting only in v1)
   havdalah_alert      BOOLEAN     NOT NULL DEFAULT TRUE,
 
   -- Quiet hours — don't send alerts outside this window (local time)
@@ -135,7 +135,7 @@ CREATE TABLE alert_log (
   id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id         UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   shabbos_time_id UUID        REFERENCES shabbos_times(id) ON DELETE SET NULL,
-  alert_type      VARCHAR(20) NOT NULL            -- 'candle_lighting' | 'havdalah'
+  alert_type      VARCHAR(20) NOT NULL DEFAULT 'candle_lighting'
                     CHECK (alert_type IN ('candle_lighting', 'havdalah')),
   scheduled_for   TIMESTAMPTZ NOT NULL,           -- when the alert was supposed to go out
   sent_at         TIMESTAMPTZ,                    -- null until actually sent

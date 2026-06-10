@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { searchPlaces, reverseGeocode } from './geocode';
 
-function LocationPicker({ location, onChange }) {
+function LocationPicker({ location, onChange, showDetect = true, quiet = false, hint, id }) {
     const [query, setQuery] = useState(location.label || '');
     const [suggestions, setSuggestions] = useState([]);
     const [searching, setSearching] = useState(false);
@@ -104,15 +104,18 @@ function LocationPicker({ location, onChange }) {
 
     const showSuggestions = query.trim().length >= 2 && (searching || suggestions.length > 0);
 
+    const defaultHint = showDetect
+        ? 'City and state only — pick from the list or use Detect.'
+        : 'Type your city and pick from the list.';
+
     return (
-        <div className="location-picker" ref={wrapRef}>
-            <p className="location-hint">
-                City and state only — pick from the list or use Detect.
-            </p>
-            <div className="location-search-row">
+        <div className={`location-picker${quiet ? ' location-picker--quiet' : ''}`} ref={wrapRef}>
+            {!quiet && <p className="location-hint">{hint || defaultHint}</p>}
+            <div className={`location-search-row${showDetect ? '' : ' location-search-row--full'}`}>
                 <div className="location-input-wrap">
                     <input
                         type="text"
+                        id={id}
                         name="location_label"
                         placeholder="Start typing your city…"
                         value={query}
@@ -143,21 +146,25 @@ function LocationPicker({ location, onChange }) {
                         </ul>
                     )}
                 </div>
-                <button
-                    type="button"
-                    className="btn-gps"
-                    onClick={handleGPS}
-                    disabled={gpsLoading}
-                >
-                    {gpsLoading ? '…' : 'Detect'}
-                </button>
+                {showDetect && (
+                    <button
+                        type="button"
+                        className="btn-gps"
+                        onClick={handleGPS}
+                        disabled={gpsLoading}
+                    >
+                        {gpsLoading ? '…' : 'Detect'}
+                    </button>
+                )}
             </div>
-            {isValid && !error && (
+            {!quiet && isValid && !error && (
                 <p className="location-status valid">✓ {location.label}</p>
             )}
             {error && <p className="location-status error">{error}</p>}
-            {!isValid && !error && query.trim().length > 0 && (
-                <p className="location-status warn">Pick a city from the list or use Detect.</p>
+            {!quiet && !isValid && !error && query.trim().length > 0 && (
+                <p className="location-status warn">
+                    {showDetect ? 'Pick a city from the list or use Detect.' : 'Pick a city from the list.'}
+                </p>
             )}
         </div>
     );

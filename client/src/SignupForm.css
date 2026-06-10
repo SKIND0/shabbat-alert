@@ -324,6 +324,14 @@ body {
     align-items: flex-start;
 }
 
+.location-search-row--full .location-input-wrap {
+    width: 100%;
+}
+
+.location-search-row--full {
+    flex-direction: column;
+}
+
 .location-input-wrap {
     position: relative;
     flex: 1;

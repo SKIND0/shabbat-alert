@@ -1,214 +1,226 @@
-.shabbat-times-panel {
+.times-panel {
     width: 100%;
+    background: rgba(22, 32, 50, 0.55);
+    border: 1px solid rgba(201, 168, 76, 0.2);
+    border-radius: 14px;
+    padding: clamp(1.15rem, 3vw, 1.75rem);
 }
 
-.shabbat-times-header {
-    text-align: center;
+.times-panel-inner {
     margin-bottom: 1.25rem;
 }
 
-.shabbat-times-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(1.75rem, 4vw, 2.25rem);
-    font-weight: 600;
-    color: var(--gold-light);
-    margin-bottom: 0.35rem;
+.times-panel-inner--refresh {
+    opacity: 0.72;
+    transition: opacity 0.2s;
 }
 
-.shabbat-times-sub {
-    font-size: 0.98rem;
-    font-weight: 300;
-    color: var(--cream-dim);
-    line-height: 1.55;
-    max-width: 32rem;
-    margin: 0 auto;
-}
-
-.shabbat-times-controls {
-    margin-bottom: 1.25rem;
-}
-
-.quick-cities {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-    margin-bottom: 0.85rem;
-    justify-content: center;
-}
-
-.quick-city {
-    padding: 0.35rem 0.75rem;
-    border-radius: 999px;
-    border: 1px solid rgba(201, 168, 76, 0.35);
-    background: rgba(30, 46, 66, 0.6);
-    color: var(--cream-dim);
-    font-family: 'Jost', sans-serif;
-    font-size: 0.82rem;
-    letter-spacing: 0.03em;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s, border-color 0.2s;
-}
-
-.quick-city:hover {
-    color: var(--gold-light);
-    border-color: var(--gold-dim);
-}
-
-.quick-city--active {
-    color: var(--navy);
-    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
-    border-color: transparent;
-}
-
-.shabbat-times-status {
-    text-align: center;
-    color: var(--cream-dim);
-    font-size: 0.95rem;
-    padding: 1rem 0;
-}
-
-.shabbat-times-error {
-    text-align: center;
-    color: var(--error);
-    font-size: 0.95rem;
-    padding: 0.75rem 0;
-}
-
-.shabbat-times-card {
-    background: rgba(22, 32, 50, 0.85);
-    border: 1px solid rgba(201, 168, 76, 0.25);
-    border-radius: 12px;
-    padding: 1.25rem 1.35rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-}
-
-.shabbat-times-card-head {
+.times-panel-head {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     gap: 1rem;
-    padding-bottom: 1rem;
-    margin-bottom: 0.5rem;
+    padding-bottom: 1.15rem;
+    margin-bottom: 1.15rem;
     border-bottom: 1px solid rgba(201, 168, 76, 0.15);
     flex-wrap: wrap;
 }
 
-.shabbat-times-city {
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: var(--cream);
-    letter-spacing: 0.02em;
+.times-city {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.5rem, 4vw, 1.85rem);
+    font-weight: 600;
+    color: var(--gold-light);
+    line-height: 1.15;
 }
 
-.shabbat-times-date {
+.times-date {
     font-size: 0.88rem;
+    color: var(--cream-dim);
+    margin-top: 0.2rem;
+}
+
+.times-parasha {
+    text-align: right;
+}
+
+.times-parasha-label {
+    display: block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--gold-dim);
+}
+
+.times-parasha-name {
+    display: block;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.35rem;
+    color: var(--cream);
+    line-height: 1.2;
+}
+
+.times-tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+    max-width: 28rem;
+    margin: 0 auto;
+}
+
+.times-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.25rem 0.85rem;
+    border-radius: 10px;
+    background: rgba(13, 27, 42, 0.5);
+    border: 1px solid rgba(201, 168, 76, 0.12);
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.times-tile:hover {
+    border-color: rgba(201, 168, 76, 0.28);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.times-tile--primary {
+    background: linear-gradient(
+        160deg,
+        rgba(201, 168, 76, 0.14) 0%,
+        rgba(13, 27, 42, 0.55) 70%
+    );
+    border-color: rgba(201, 168, 76, 0.32);
+}
+
+.times-tile-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    line-height: 1;
+}
+
+.times-tile-time {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.85rem, 5vw, 2.5rem);
+    font-weight: 600;
+    color: var(--gold-light);
+    line-height: 1.1;
+}
+
+.times-tile-label {
+    margin-top: 0.4rem;
+    font-size: 0.92rem;
+    color: var(--cream);
+    font-weight: 400;
+}
+
+.times-tile-sub {
+    font-size: 0.75rem;
     color: var(--cream-dim);
     margin-top: 0.15rem;
 }
 
-.shabbat-times-parasha {
-    text-align: right;
+.times-skeleton-head {
+    height: 3.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.15rem;
+    background: linear-gradient(
+        90deg,
+        rgba(201, 168, 76, 0.06) 0%,
+        rgba(201, 168, 76, 0.14) 50%,
+        rgba(201, 168, 76, 0.06) 100%
+    );
+    background-size: 200% 100%;
+    animation: times-shimmer 1.4s ease-in-out infinite;
 }
 
-.parasha-label {
+.times-skeleton-tile {
+    height: 8.5rem;
+    border-radius: 10px;
+    background: linear-gradient(
+        90deg,
+        rgba(30, 46, 66, 0.5) 0%,
+        rgba(30, 46, 66, 0.85) 50%,
+        rgba(30, 46, 66, 0.5) 100%
+    );
+    background-size: 200% 100%;
+    animation: times-shimmer 1.4s ease-in-out infinite;
+}
+
+.times-skeleton-tile:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+@keyframes times-shimmer {
+    0% {
+        background-position: 100% 0;
+    }
+    100% {
+        background-position: -100% 0;
+    }
+}
+
+.times-refresh {
+    text-align: center;
+    color: var(--cream-dim);
+    font-size: 0.82rem;
+    margin-top: 0.75rem;
+}
+
+.times-search-block {
+    padding-top: 1.15rem;
+    border-top: 1px solid rgba(201, 168, 76, 0.12);
+}
+
+.times-search-label {
     display: block;
     font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.12em;
     color: var(--gold-dim);
+    margin-bottom: 0.55rem;
 }
 
-.parasha-name {
-    display: block;
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.35rem;
-    color: var(--gold-light);
-    line-height: 1.2;
-}
-
-.zman-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.zman-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid rgba(201, 168, 76, 0.08);
-}
-
-.zman-item:last-child {
-    border-bottom: none;
-}
-
-.zman-item--highlight {
-    background: rgba(201, 168, 76, 0.06);
-    margin: 0 -0.65rem;
-    padding-left: 0.65rem;
-    padding-right: 0.65rem;
-    border-radius: 8px;
-    border-bottom-color: transparent;
-}
-
-.zman-item-text {
-    display: flex;
+.times-search-block .location-picker--quiet .location-search-row {
     flex-direction: column;
-    gap: 0.1rem;
 }
 
-.zman-label {
-    font-size: 0.98rem;
-    color: var(--cream);
-    font-weight: 400;
+.times-search-block .location-input-wrap {
+    width: 100%;
 }
 
-.zman-sub {
+.times-credit {
+    margin-top: 1rem;
+    text-align: center;
     font-size: 0.78rem;
     color: var(--cream-dim);
-    letter-spacing: 0.02em;
 }
 
-.zman-value {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.45rem;
-    font-weight: 600;
-    color: var(--gold-light);
-    white-space: nowrap;
-}
-
-.shabbat-times-foot {
-    margin-top: 1rem;
-    padding-top: 0.85rem;
-    border-top: 1px solid rgba(201, 168, 76, 0.12);
-    font-size: 0.82rem;
-    color: var(--cream-dim);
-    text-align: center;
-    line-height: 1.5;
-}
-
-.shabbat-times-foot a {
-    color: var(--gold);
+.times-credit a {
+    color: var(--gold-dim);
     text-decoration: none;
 }
 
-.shabbat-times-foot a:hover {
+.times-credit a:hover {
     color: var(--gold-light);
 }
 
-.shabbat-times-panel--compact .shabbat-times-card {
-    padding: 1rem;
+.times-error {
+    text-align: center;
+    color: var(--error);
+    font-size: 0.92rem;
+    padding: 1.5rem 0;
+    margin-bottom: 0.5rem;
 }
 
-.shabbat-times-panel--compact .zman-value {
-    font-size: 1.25rem;
-}
+@media (max-width: 480px) {
+    .times-tiles {
+        max-width: none;
+    }
 
-@media (max-width: 520px) {
-    .shabbat-times-parasha {
+    .times-parasha {
         text-align: left;
         width: 100%;
     }

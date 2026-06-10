@@ -2,6 +2,8 @@ const pool = require('./db');
 const { findPreset, roundCoord, PRESET_LOCATIONS } = require('./presetLocations');
 
 const CANDLE_MINUTES_BEFORE_SUNSET = 18;
+/** Hebcal Shabbat API category for when Shabbat ends (stored internally only; no end-of-Shabbat alerts). */
+const HEBCAL_SHABBAT_END_CATEGORY = 'havdalah';
 
 async function fetchShabbatFromHebcal(latitude, longitude, timezone) {
     const url =
@@ -14,22 +16,25 @@ async function fetchShabbatFromHebcal(latitude, longitude, timezone) {
     const data = await response.json();
 
     const candles = data.items.find((i) => i.category === 'candles');
-    const havdalah = data.items.find((i) => i.category === 'havdalah');
+    const shabbatEnd = data.items.find((i) => i.category === HEBCAL_SHABBAT_END_CATEGORY);
     const parasha = data.items.find((i) => i.category === 'parashat');
 
-    if (!candles || !havdalah) {
-        throw new Error('Could not find candle lighting or havdalah times');
+    if (!candles) {
+        throw new Error('Could not find candle lighting time');
     }
 
     const parashaDate = candles.date.split('T')[0];
     const sunset = await fetchSunset(latitude, longitude, timezone, parashaDate);
+    const shabbatEndUtc = shabbatEnd
+        ? new Date(shabbatEnd.date).toISOString()
+        : new Date(new Date(sunset).getTime() + 25 * 60 * 60 * 1000).toISOString();
 
     return {
         parasha_date: parashaDate,
         parasha_name: parasha ? parasha.title : null,
         candle_lighting_utc: new Date(candles.date).toISOString(),
         sunset_utc: sunset,
-        havdalah_utc: new Date(havdalah.date).toISOString(),
+        shabbat_end_utc: shabbatEndUtc,
     };
 }
 
@@ -89,7 +94,7 @@ async function saveSharedCache(preset, latitude, longitude, times) {
                 times.parasha_name,
                 times.candle_lighting_utc,
                 times.sunset_utc,
-                times.havdalah_utc,
+                times.shabbat_end_utc,
                 existing.id,
             ]
         );
@@ -114,7 +119,7 @@ async function saveSharedCache(preset, latitude, longitude, times) {
                     times.parasha_name,
                     times.candle_lighting_utc,
                     times.sunset_utc,
-                    times.havdalah_utc,
+                    times.shabbat_end_utc,
                 ]
             );
             return;
@@ -135,12 +140,13 @@ async function saveSharedCache(preset, latitude, longitude, times) {
             times.parasha_name,
             times.candle_lighting_utc,
             times.sunset_utc,
-            times.havdalah_utc,
+            times.shabbat_end_utc,
         ]
     );
 }
 
 async function upsertUserShabbosTimes(locationId, times) {
+    const endUtc = times.shabbat_end_utc || times.havdalah_utc;
     const result = await pool.query(
         `INSERT INTO shabbos_times
             (location_id, parasha_date, parasha_name,
@@ -158,7 +164,7 @@ async function upsertUserShabbosTimes(locationId, times) {
             times.parasha_name,
             times.candle_lighting_utc,
             times.sunset_utc,
-            times.havdalah_utc,
+            endUtc,
         ]
     );
     return result.rows[0];
@@ -191,7 +197,7 @@ async function fetchAndCacheShabbatTimes(locationId, latitude, longitude, timezo
             parasha_name: shared.parasha_name,
             candle_lighting_utc: shared.candle_lighting_utc,
             sunset_utc: shared.sunset_utc,
-            havdalah_utc: shared.havdalah_utc,
+            shabbat_end_utc: shared.havdalah_utc,
         }
         : fresh;
 
@@ -218,61 +224,20 @@ async function seedPresetLocations() {
     }
 }
 
-async function fetchZmanimForDate(latitude, longitude, timezone, date) {
-    const url =
-        `https://www.hebcal.com/zmanim?cfg=json&latitude=${latitude}` +
-        `&longitude=${longitude}&tzid=${encodeURIComponent(timezone)}&date=${date}`;
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Hebcal zmanim API failed (${response.status})`);
-    }
-    const data = await response.json();
-    const times = data.times || {};
-    const pick = (key) => (times[key] ? new Date(times[key]).toISOString() : null);
-    return {
-        plag_hamincha_utc: pick('plagHaMincha'),
-        mincha_ketana_utc: pick('minchaKetana'),
-        mincha_gedola_utc: pick('minchaGedola'),
-    };
-}
-
-async function fetchAndCacheShabbatTimesForPreview(latitude, longitude, timezone) {
-    const preset = findPreset(latitude, longitude, null);
+async function fetchShabbatPreview(latitude, longitude, timezone) {
     const fresh = await fetchShabbatFromHebcal(latitude, longitude, timezone);
-    let shared = await getSharedCache(preset, latitude, longitude, fresh.parasha_date);
-
-    if (!shared) {
-        await saveSharedCache(preset, latitude, longitude, fresh);
-        shared = await getSharedCache(preset, latitude, longitude, fresh.parasha_date);
-    }
-
-    const base = shared
-        ? {
-            parasha_date: shared.parasha_date,
-            parasha_name: shared.parasha_name,
-            candle_lighting_utc: shared.candle_lighting_utc,
-            sunset_utc: shared.sunset_utc,
-            havdalah_utc: shared.havdalah_utc,
-        }
-        : fresh;
-
-    const zmanim = await fetchZmanimForDate(
-        latitude,
-        longitude,
-        timezone,
-        base.parasha_date
-    );
-
     return {
-        ...base,
-        ...zmanim,
+        parasha_date: fresh.parasha_date,
+        parasha_name: fresh.parasha_name,
+        candle_lighting_utc: fresh.candle_lighting_utc,
+        sunset_utc: fresh.sunset_utc,
         candles_minutes_before_sunset: CANDLE_MINUTES_BEFORE_SUNSET,
     };
 }
 
 module.exports = {
     fetchAndCacheShabbatTimes,
-    fetchAndCacheShabbatTimesForPreview,
+    fetchShabbatPreview,
     fetchShabbatFromHebcal,
     seedPresetLocations,
     CANDLE_MINUTES_BEFORE_SUNSET,

@@ -1,11 +1,12 @@
-import { Link } from 'react-router-dom';
+import SiteNav from './SiteNav';
+import SiteFooter from './SiteFooter';
 import './SignupForm.css';
 
 function Privacy() {
     return (
         <div className="site-page">
-            <div className="site-inner">
-                <Link to="/" className="btn-back">← Back to home</Link>
+            <div className="site-inner signup-page">
+                <SiteNav />
                 <div className="form-panel legal-page">
                     <h2>Privacy Policy</h2>
                     <p className="card-subtitle">Shabbat Alert · Last updated June 2026</p>
@@ -40,6 +41,7 @@ function Privacy() {
                         <a href="mailto:Shabbatalertproject@gmail.com">Shabbatalertproject@gmail.com</a>
                     </p>
                 </div>
+                <SiteFooter />
             </div>
         </div>
     );

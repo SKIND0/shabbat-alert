@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import SiteNav from './SiteNav';
+import SiteFooter from './SiteFooter';
 import './SignupForm.css';
 import './Demo.css';
 
@@ -29,7 +30,7 @@ const FLOW_STEPS = [
     {
         id: 3,
         title: 'Hebcal + alert planning',
-        body: 'planAlertsForUser fetches this week\'s candle lighting, sunset, and havdalah from Hebcal (cached in shabbos_times_cache). For each alert preference, it schedules a row in alert_log.',
+        body: 'planAlertsForUser fetches this week\'s candle lighting and sunset from Hebcal (cached in shabbos_times_cache). For each alert preference, it schedules a row in alert_log.',
         detail: 'scheduled_for = candle_time − minutes',
         icon: '📅',
     },
@@ -128,7 +129,7 @@ const API_ENDPOINTS = [
         path: '/api/shabbat-preview?lat=&lng=',
         purpose: 'Public zmanim for home page (no login)',
         body: '(query params only)',
-        response: '{ "candle_lighting_utc", "sunset_utc", "havdalah_utc", "parasha_name", ... }',
+        response: '{ "candle_lighting_utc", "sunset_utc", "parasha_name", ... }',
     },
     {
         method: 'GET',
@@ -359,16 +360,10 @@ function Demo() {
                 </div>
 
                 <div className="demo-footer-cta">
-                    <p>Interactive live demo (signup + sample SMS) coming next on this page.</p>
-                    <Link to="/signup" className="btn-submit demo-cta-btn">
-                        Try real signup
-                    </Link>
+                    <p>Interactive live demo (signup + sample SMS preview) coming next on this page.</p>
                 </div>
 
-                <p className="footer-note">
-                    <Link to="/">Times</Link> · <Link to="/privacy">Privacy</Link> ·{' '}
-                    <Link to="/terms">Terms</Link>
-                </p>
+                <SiteFooter />
             </div>
         </div>
     );

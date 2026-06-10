@@ -5,112 +5,34 @@
     justify-content: flex-start;
 }
 
-.home-intro {
+.times-hero {
     text-align: center;
-    margin-bottom: 1.75rem;
+    margin-bottom: 1.35rem;
 }
 
-.home-hero {
-    margin-bottom: 1rem;
-}
-
-.home-title {
+.times-title {
     font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(2.25rem, 6vw, 3.5rem);
+    font-size: clamp(2.25rem, 6vw, 3.25rem);
     font-weight: 600;
     color: var(--gold-light);
-    letter-spacing: 0.04em;
-    line-height: 1.08;
+    letter-spacing: 0.03em;
 }
 
-.home-tagline {
-    font-size: clamp(0.85rem, 2vw, 0.95rem);
+.times-tagline {
+    font-size: 0.88rem;
     font-weight: 300;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--cream-dim);
-    margin-top: 0.65rem;
+    margin-top: 0.6rem;
 }
 
-.home-hero .candle-divider {
-    margin: 0.75rem auto 0;
-    max-width: 12rem;
+.times-hero .candle-divider {
+    margin: 0.65rem auto 0;
+    max-width: 10rem;
 }
 
-.home-lead {
-    font-size: clamp(1rem, 2vw, 1.12rem);
-    font-weight: 300;
-    line-height: 1.65;
-    color: var(--cream-dim);
-    max-width: 36rem;
-    margin: 0 auto;
-}
-
-.home-below-times {
-    margin-top: 2rem;
-    text-align: center;
-}
-
-.home-features {
-    list-style: none;
-    padding: 0;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.55rem 1.5rem;
-    max-width: 32rem;
-    margin: 0 auto 1.75rem;
-    text-align: left;
-}
-
-.home-features li {
-    font-size: 0.95rem;
-    font-weight: 300;
-    color: var(--cream);
-    letter-spacing: 0.02em;
-    line-height: 1.45;
-}
-
-.feature-dot {
-    color: var(--gold);
-    margin-right: 0.5rem;
-    font-size: 0.8rem;
-}
-
-.home-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-    width: 100%;
-    max-width: 22rem;
-    margin: 0 auto;
-}
-
-.home-btn {
-    width: 100%;
-}
-
-.home-demo-link {
-    display: block;
-    margin-top: 0.35rem;
-    font-size: 0.9rem;
-    color: var(--gold-dim);
-    text-decoration: none;
-    letter-spacing: 0.03em;
-    transition: color 0.2s;
-}
-
-.home-demo-link:hover {
-    color: var(--gold-light);
-}
-
-.home-page .footer-note {
+.home-page .site-footer {
     padding-top: 2rem;
-    margin-top: 1rem;
-}
-
-@media (max-width: 520px) {
-    .home-features {
-        grid-template-columns: 1fr;
-        max-width: 18rem;
-    }
+    margin-top: 0.5rem;
 }

@@ -22,7 +22,7 @@ const { buildShabbatMessage, planAlertsForUser } = require('./scheduler');
 const { sanitizeAlertMinutes, MAX_ALERT_MINUTES } = require('./alertLimits');
 const {
     fetchAndCacheShabbatTimes,
-    fetchAndCacheShabbatTimesForPreview,
+    fetchShabbatPreview,
     seedPresetLocations,
 } = require('./hebcal');
 
@@ -354,7 +354,7 @@ app.get('/api/shabbat-preview', async (req, res) => {
     const timezone = req.query.timezone || resolveTimezone(lat, lng);
 
     try {
-        const times = await fetchAndCacheShabbatTimesForPreview(lat, lng, timezone);
+        const times = await fetchShabbatPreview(lat, lng, timezone);
         res.json({
             ...times,
             timezone,
