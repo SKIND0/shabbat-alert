@@ -9,14 +9,6 @@ app.use(cors({ origin: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-
-// { sendSMS } = require('./twilio');
-
-//app.get('/test-sms', async (req, res) => {
-//    const result = await sendSMS('+1YOURNUMBER', 'Shabbat Alert test message 🕯️');
-//    res.json(result);
-//});
-
 const { sendSMS } = require('./twilio');
 const { buildShabbatMessage, planAlertsForUser } = require('./scheduler');
 const { sanitizeAlertMinutes, MAX_ALERT_MINUTES } = require('./alertLimits');
@@ -340,6 +332,139 @@ app.put('/api/preferences/:userId', async (req, res) => {
 
         res.json({ success: true });
     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+function addDaysToDateStr(dateStr, days) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d + days));
+    const yy = dt.getUTCFullYear();
+    const mm = String(dt.getUTCMonth() + 1).padStart(2, '0');
+    const dd = String(dt.getUTCDate()).padStart(2, '0');
+    return `${yy}-${mm}-${dd}`;
+}
+
+function findUtcForLocalTime(timezone, localDateStr, hour, minute) {
+    const [y, m, d] = localDateStr.split('-').map(Number);
+    const anchor = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+    for (let offsetHours = -30; offsetHours <= 30; offsetHours++) {
+        for (let minOffset = 0; minOffset < 60; minOffset += 5) {
+            const candidate = new Date(anchor.getTime() + (offsetHours * 60 + minOffset) * 60 * 1000);
+            const parts = Object.fromEntries(
+                new Intl.DateTimeFormat('en-CA', {
+                    timeZone: timezone,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                })
+                    .formatToParts(candidate)
+                    .filter((p) => p.type !== 'literal')
+                    .map((p) => [p.type, p.value])
+            );
+            const dateKey = `${parts.year}-${parts.month}-${parts.day}`;
+            if (
+                dateKey === localDateStr &&
+                Number(parts.hour) === hour &&
+                Number(parts.minute) === minute
+            ) {
+                return candidate;
+            }
+        }
+    }
+    return anchor;
+}
+
+app.get('/api/demo/timeline', async (req, res) => {
+    const lat = Number(req.query.lat);
+    const lng = Number(req.query.lng);
+    if (Number.isNaN(lat) || Number.isNaN(lng)) {
+        return res.status(400).json({ error: 'lat and lng query parameters are required' });
+    }
+
+    const firstNameInput = (req.query.name || 'Sarah').trim();
+    const locationLabel = req.query.location_label || 'Brooklyn, New York, United States';
+    const timezone = req.query.timezone || resolveTimezone(lat, lng);
+    const minutesRaw = (req.query.minutes || '18,60')
+        .split(',')
+        .map((v) => Number(v.trim()))
+        .filter((n) => !Number.isNaN(n));
+    const minutesList = sanitizeAlertMinutes(minutesRaw);
+
+    try {
+        const times = await fetchShabbatPreview(lat, lng, timezone);
+        const candleUtc = new Date(times.candle_lighting_utc);
+        const sunsetUtc = new Date(times.sunset_utc);
+        const parashaDate = times.parasha_date;
+
+        const signupDate = addDaysToDateStr(parashaDate, -2);
+        const signupAt = findUtcForLocalTime(timezone, signupDate, 14, 14);
+        const replanAt = findUtcForLocalTime(timezone, parashaDate, 8, 0);
+
+        const welcomeMessage = buildWelcomeMessage(firstNameInput, minutesList, locationLabel);
+        const shabbatMessage = buildShabbatMessage(
+            firstNameInput,
+            candleUtc,
+            sunsetUtc,
+            timezone
+        );
+
+        const alerts = minutesList
+            .slice()
+            .sort((a, b) => b - a)
+            .map((minutes) => ({
+                minutes,
+                scheduled_for: new Date(candleUtc.getTime() - minutes * 60 * 1000).toISOString(),
+                message: shabbatMessage,
+            }));
+
+        const events = [
+            {
+                id: 'signup',
+                kind: 'action',
+                label: `${firstName(firstNameInput)} signs up on the web`,
+                at: signupAt.toISOString(),
+                detail: 'POST /api/signup — user, location, and alert prefs saved',
+            },
+            {
+                id: 'welcome',
+                kind: 'sms',
+                label: 'Welcome text',
+                at: new Date(signupAt.getTime() + 3000).toISOString(),
+                message: welcomeMessage,
+            },
+            {
+                id: 'replan',
+                kind: 'system',
+                label: 'Friday morning replan',
+                at: replanAt.toISOString(),
+                detail: 'Hourly cron queues this week\'s alert_log rows (Friday 8:00 AM local)',
+            },
+            ...alerts.map((alert) => ({
+                id: `alert-${alert.minutes}`,
+                kind: 'sms',
+                label: `${alert.minutes} min before candles`,
+                at: alert.scheduled_for,
+                message: alert.message,
+                minutes: alert.minutes,
+            })),
+        ];
+
+        res.json({
+            timezone,
+            location_label: locationLabel,
+            parasha_name: times.parasha_name,
+            parasha_date: parashaDate,
+            candle_lighting_utc: times.candle_lighting_utc,
+            sunset_utc: times.sunset_utc,
+            alert_minutes: minutesList,
+            events,
+        });
+    } catch (err) {
+        console.error('Demo timeline failed:', err.message);
         res.status(500).json({ error: err.message });
     }
 });

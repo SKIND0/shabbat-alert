@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import SiteNav from './SiteNav';
 import SiteFooter from './SiteFooter';
+import DemoSimulation from './DemoSimulation';
 import './SignupForm.css';
 import './Demo.css';
 
 const TABS = [
     { id: 'overview', label: 'Overview' },
+    { id: 'simulation', label: 'SMS simulation' },
     { id: 'flow', label: 'User flow' },
     { id: 'patterns', label: 'Design patterns' },
     { id: 'api', label: 'REST API' },
@@ -44,7 +46,7 @@ const FLOW_STEPS = [
     {
         id: 5,
         title: 'SMS at the right minute',
-        body: 'Every minute on Friday & Saturday UTC, sendDueAlerts finds pending alerts whose time has arrived and sends: "Hey Sarah, candle lighting at 7:42 PM…"',
+        body: 'Every minute on Friday & Saturday UTC, sendDueAlerts sends pending texts. Example: "Hey Sarah, candle lighting at 7:24 PM (Shabbat starts 7:42 PM). Shabbat Shalom! On vacation? Update your location…"',
         detail: 'Twilio REST · alert_log status → sent',
         icon: '📱',
     },
@@ -52,46 +54,46 @@ const FLOW_STEPS = [
 
 const PATTERNS = [
     {
-        id: 'rest',
-        name: 'REST API',
-        short: 'Client ↔ server over HTTP JSON',
-        detail:
-            'Express exposes resource-oriented routes (/api/signup, /api/preferences/:userId). React uses fetch with GET/POST/PUT. Stateless requests; PostgreSQL holds persistent state.',
-    },
-    {
         id: 'mvc',
-        name: 'MVC-style separation',
-        short: 'Views, routes, data layer',
+        name: 'MVC (Model-View-Controller)',
+        short: 'Separates data, logic, and display',
         detail:
-            'React components are views. Express route handlers are controllers. Postgres tables (users, alert_log, shabbos_times) are the model. hebcal.js and scheduler.js are service modules.',
+            'A classic architectural pattern that splits the app into three layers. React components are the View — they display data and handle user interaction. Express route handlers are the Controller — they process requests and apply logic. PostgreSQL tables (users, alert_log, shabbos_times) are the Model — they store and represent the data.',
     },
     {
-        id: 'repo',
-        name: 'Repository / cache',
-        short: 'Hebcal data cached in DB',
+        id: 'repository',
+        name: 'Repository',
+        short: 'Abstracts data access behind a clean interface',
         detail:
-            'fetchAndCacheShabbatTimes checks shabbos_times and shabbos_times_cache before calling Hebcal. Preset cities share one cache row to cut API calls.',
-    },
-    {
-        id: 'cron',
-        name: 'Scheduler (cron)',
-        short: 'Background jobs without user action',
-        detail:
-            'node-cron runs planAlertsForAllUsers hourly and sendDueAlerts every minute. Alerts fire automatically — no user needs to open the app on Friday.',
-    },
-    {
-        id: 'middleware',
-        name: 'Middleware',
-        short: 'Cross-cutting request handling',
-        detail:
-            'cors enables the React frontend on Railway. express.json() parses bodies. Twilio STOP webhook uses urlencoded parsing for inbound SMS.',
+            'hebcal.js acts as a repository — it fetches Shabbat times from the Hebcal API and caches the results in the database. The rest of the app never talks to Hebcal directly, it just asks the repository. This keeps external API logic in one place and avoids redundant network calls.',
     },
     {
         id: 'builder',
-        name: 'Message builder',
-        short: 'Consistent SMS copy',
+        name: 'Builder',
+        short: 'Constructs complex objects step by step',
         detail:
-            'buildShabbatMessage, buildWelcomeMessage, and buildSettingsUpdatedMessage centralize string formatting so Twilio sends the same tone everywhere.',
+            'SMS messages are assembled using dedicated builder functions — buildWelcomeMessage, buildSettingsUpdatedMessage, and buildShabbatMessage. Rather than scattering message text across the codebase, each builder composes a final string from shared helpers like firstName and describeAlertMinutes, keeping all messages consistent.',
+    },
+    {
+        id: 'observer',
+        name: 'Observer (via Scheduler)',
+        short: 'Reacts to events automatically',
+        detail:
+            'node-cron watches the clock and triggers actions when conditions are met — queuing alerts every Friday morning and sending due alerts every minute. The users never trigger this themselves; the scheduler observes time passing and reacts accordingly.',
+    },
+    {
+        id: 'singleton',
+        name: 'Singleton',
+        short: 'One shared instance across the app',
+        detail:
+            'The PostgreSQL connection pool in db.js is created once and shared across the entire backend. Every route and module that needs the database imports the same single instance, rather than opening a new connection each time. This saves resources and avoids connection conflicts.',
+    },
+    {
+        id: 'facade',
+        name: 'Façade',
+        short: 'Simplifies a complex external service',
+        detail:
+            'twilio.js wraps the Twilio SDK behind a simple interface. The rest of the app just calls sendSms(phone, message) without needing to know anything about Twilio credentials, client setup, or API specifics. If the SMS provider ever changed, only twilio.js would need to be updated.',
     },
 ];
 
@@ -108,14 +110,14 @@ const API_ENDPOINTS = [
   "location_label": "Brooklyn, NY",
   "alert_preferences": [18, 60]
 }`,
-        response: '{ "success": true, "userId": 1 }',
+        response: '{ "success": true, "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890" }',
     },
     {
         method: 'POST',
         path: '/api/manage/lookup',
         purpose: 'Find user by phone for preferences page',
         body: '{ "phone_number": "+15551234567" }',
-        response: '{ "success": true, "userId": 1, "alert_preferences": [18], ... }',
+        response: '{ "success": true, "userId": "a1b2c3d4-…", "alert_preferences": [18], ... }',
     },
     {
         method: 'PUT',
@@ -123,6 +125,13 @@ const API_ENDPOINTS = [
         purpose: 'Update city and alert times, replan',
         body: '{ "location_lat", "location_lng", "location_label", "alert_preferences": [13] }',
         response: '{ "success": true }',
+    },
+    {
+        method: 'GET',
+        path: '/api/demo/timeline?lat=&lng=&name=&minutes=',
+        purpose: 'Demo page — welcome + alert SMS copy with real Hebcal times',
+        body: '(query: lat, lng, name, location_label, minutes, timezone)',
+        response: '{ "events": [{ "kind": "sms", "message": "…", "at": "…" }], … }',
     },
     {
         method: 'GET',
@@ -224,6 +233,12 @@ function Demo() {
                                     </p>
                                 </article>
                             </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'simulation' && (
+                        <div className="demo-section demo-section--sim">
+                            <DemoSimulation />
                         </div>
                     )}
 
@@ -357,10 +372,6 @@ function Demo() {
                             </ul>
                         </div>
                     )}
-                </div>
-
-                <div className="demo-footer-cta">
-                    <p>Interactive live demo (signup + sample SMS preview) coming next on this page.</p>
                 </div>
 
                 <SiteFooter />
