@@ -16,8 +16,7 @@
     "express": "^4.21.2",
     "http-proxy-middleware": "^3.0.3",
     "react-scripts": "5.0.1",
-    "serve": "^14.2.4",
-    "web-vitals": "^2.1.4"
+    "serve": "^14.2.4"
   },
   "scripts": {
     "start": "react-scripts start",
